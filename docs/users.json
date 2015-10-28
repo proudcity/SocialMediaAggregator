@@ -9,6 +9,50 @@
     // From Google Places API
     "lat":37.8044444,
     "lng":-122.2697222,
+    // From Google Civic Info API (see IV.3 of v2_specs.md)
+    "representatives": [
+      // People from offices where the divisionId is a child of the state level
+      // Exmaples from https://www.googleapis.com/civicinfo/v2/representatives?address=37.845553%2C-122.234191&key={YOUR_API_KEY}:
+      // - ocd-division/country:us/state:ca/county:alameda
+      // - ocd-division/country:us/state:ca/place:oakland
+      // - ocd-division/country:us/state:ca/sldu:9
+      {
+       // from "offices"
+       "office": "Mayor",
+       "divisionId": "ocd-division/country:us/state:ca/place:oakland",
+       // from "officials"
+       "name": "Libby Schaaf",
+       "address": [
+        {
+         "line1": "1 Frank H. Ogawa Plaza 3rd Floor",
+         "city": "oakland",
+         "state": "CA",
+         "zip": "94612"
+        }
+       ],
+       "party": "Non-partisan",
+       "phones": [
+        "(510) 238-3141"
+       ],
+       "urls": [
+        "http://www2.oaklandnet.com/Government/o/Mayor/index.htm"
+       ],
+       "photoUrl": "http://www2.oaklandnet.com/oakca1/groups/ceda/documents/image/oak051245.jpg",
+       "emails": [
+        "mayors-schedule@oaklandnet.com"
+       ],
+       "channels": [
+        {
+         "type": "Facebook",
+         "id": "297953162283"
+        },
+        {
+         "type": "Twitter",
+         "id": "LibbySchaaf"
+        }
+       ]
+      },
+    ]
     // Set from API
     "agencies":[  
       {  
@@ -87,6 +131,45 @@
     //html.html();
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Rockridge03102006.JPG/250px-Rockridge03102006.JPG",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Rockridge,_Oakland,_California",
+    // From Google Civic Info API (see IV.3 of v2_specs.md)
+    "representatives": [
+      // People from offices where the divisionId is on the child level of the county or place
+      // Exmaples from https://www.googleapis.com/civicinfo/v2/representatives?address=37.845553%2C-122.234191&key={YOUR_API_KEY}:
+      // - ocd-division/country:us/state:ca/county:alameda/council_district:5
+      // - ocd-division/country:us/state:ca/place:oakland/council_district:1
+      {
+       // from "offices"
+       "name": "Board of Supervisors, District 5",
+       "divisionId": "ocd-division/country:us/state:ca/county:alameda/council_district:5",
+       // from "officerts"
+       "name": "Keith Carson",
+       "address": [
+        {
+         "line1": "1221 oak street",
+         "city": "oakland",
+         "state": "CA",
+         "zip": "94612"
+        }
+       ],
+       "party": "Nonpartisan",
+       "phones": [
+        "(510) 272-6695"
+       ],
+       "urls": [
+        "http://www.acgov.org/board/district5/"
+       ],
+       "channels": [
+        {
+         "type": "Facebook",
+         "id": "keith.carson"
+        },
+        {
+         "type": "Twitter",
+         "id": "keith_carson"
+        }
+       ]
+      },
+    ]
     // From geojson url on parent: https://raw.githubusercontent.com/substack/oakland-neighborhoods/master/neighborhoods.geojson
     "geometry": {
       type: "Polygon",
