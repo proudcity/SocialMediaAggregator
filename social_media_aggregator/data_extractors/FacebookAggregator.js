@@ -15,7 +15,7 @@ var bufferedPagesInExec = [];
 exports.aggregateData = function(userName, agency) {
     var $that = this;
 
-    AggregatorController.gatherSearchCriteria(userName, agency, 'facebook', function(criteria){
+    AggregatorController.gatherSearchCriteria(userName, agency.name, agency.facebook, 'facebook', function(criteria){
         searchCriteria = criteria;
 
         $that.extractData(userName, agency.name, criteria);
@@ -71,28 +71,17 @@ exports.isSessionValid = function(callback){
 exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
-    $that.ensureAuthenticated(function(){
-        logger.log('debug',"Extracting data from Facebook...");
-        var asyncTasks = [];
-
-        criteria.profiles.forEach(function(profile){
-            console.log(profile);
-            asyncTasks.push(function(callback){
-                $that.extractProfilePosts(userName, agencyName, profile, callback);
-            });
+    criteria.accounts.forEach(function(account){
+        AggregatorController.runWithTimeout(account.frequency, null, function(){
+            $that.ensureAuthenticated(function(){
+                $that.extractProfilePosts(userName, agencyName, account.name, function(){});
+            })
         });
-
-        async.parallel(asyncTasks, function(){
-            if(asyncTasks.length < config.app.postLimit) {
-                $that.extractPostsFromBufferedPages();
-            }
-        });
-
-    })
+    });
 }
 
 exports.extractProfilePosts = function(userName, agencyName, profile, callback){
-    logger.log('debug',"Extracting data from Facebook profile %s", profile);
+    logger.log('info',"Extracting data from Facebook profile %s", profile);
 
     var $that = this;
 
@@ -108,20 +97,21 @@ exports.extractProfilePosts = function(userName, agencyName, profile, callback){
 
                     $that.extractPostsLikes(post, function(post){
 
-                        $that.savePost(post, callback);
+                        $that.extractPostLocation(post, function(post){
+
+                            $that.savePost(post, callback);
+
+                        });
 
                     });
-
                 });
             });
 
             async.parallel(asyncTasks, function(){
                 callback();
             });
-
         });
     });
-
 }
 
 // will query the db to get the laast post datetime for a profile
@@ -264,7 +254,6 @@ exports.extractNextInfo = function(bufferedPage, callback){
         }
 
         return;
-
     });
 }
 
@@ -286,7 +275,51 @@ exports.extractPostsLikes = function(post, cb){
 
         return cb(post);
     });
+}
 
+// extracts location
+exports.extractPostLocation = function(post, cb){
+    var $that = this;
+
+    FB.api(post.id + '?summary=true&fields=place&access_token=' + session.access_token, function (res) {
+
+        if(!res || res.error) {
+            $that.handleError(res.error.code, res.error.message, function(){
+                return $that.extractPostLocation(post, cb);
+            });
+        }
+
+        if(res!=undefined && res.place!=undefined  && res.place.id!=undefined){
+
+            FB.api(res.place.id + '?summary=true&fields=location&access_token=' + session.access_token, function (res) {
+                if(res!=undefined && res.location!=undefined){
+
+                    post.loc = {
+                        type: 'Point',
+                        coordinates: [res.location.longitude, res.location.latitude],
+                        address: extractAddress(res.location)
+                    }
+                }
+
+                return cb(post);
+            });
+        } else {
+            return cb(post);
+        }
+
+    });
+}
+
+var extractAddress = function(position){
+    var addr = "";
+    addr += "street: " + position.street + ", ";
+    addr += "state: " + position.state + ", ";
+    addr += "zip: " + position.zip + ", ";
+    addr += "region: " + position.region + ", ";
+    addr += "city: " + position.city + ", ";
+    addr += "country: " + position.country;
+
+    return addr;
 }
 
 // saves the post into the db
