@@ -4,3 +4,5 @@ app.log
 npm-debug.log
 .env
 port.yml
+debug.txt
+
