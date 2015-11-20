@@ -71,24 +71,39 @@ There are 2 collections for this repo.
 
 - Create User **Requires auth**
 ```sh
-curl -u USERNAME -X POST -H "Content-Type: application/json" -d '{
-    "name": "issaquah_wa",
+curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
+    "type": "city",
+    "name": "Oakland,_California",
+    "label": "Oakland",
+    "geojsonUrl": "https://raw.githubusercontent.com/substack/oakland-neighborhoods/master/neighborhoods.geojson",
     "agencies": [
-      {
-        "name": "default",
-        "twitter":[
-           "@albatrossdigi"
-        ],
-        "facebook":[
-           "@DonaldTrump"
-        ],
-        "youtube": [
-          "@SenatorSanders"
-        ],
-        "instagram": [
-          "@github"
-        ]
-      }
+        {
+            "name": "local",
+            "youtube": {},
+            "twitter": {
+                "frequency": 3000,
+                "feeds": [
+                    {
+                        "type": "account",
+                        "query": "Oakland"
+                    }
+                ]
+            },
+            "instagram": {
+                "frequency": 3000,
+                "feeds": [
+                    {
+                        "type": "account",
+                        "frequency": 24000,
+                        "query": "oaklandmuseumca"
+                    },
+                    {
+                        "type": "account",
+                        "query": "oaklandhasjobs"
+                    }
+                ]
+            }
+        }
     ]
 }' 'http://localhost:8084/user/create'
 ```
@@ -100,33 +115,40 @@ curl -u USERNAME -X GET -H "Content-Type: application/json" 'http://localhost:80
 
 - Update User **Requires auth**
 ```sh
-curl -u USERNAME -X POST -H "Content-Type: application/json" -d '{
-    "name": "issaquah_wa",
+curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
+    "name": "Oakland,_California",
     "agencies": [
-      {
-        "name": "default",
-        "twitter":[
-           "@albatrossdigi",
-           "#govtech"
-        ]
-      }
+        {
+            "instagram": {
+                "feeds": [
+                    {
+                        "type": "account",
+                        "query": "athletics"
+                    }
+                ]
+            }
+        }
     ]
 }' 'http://localhost:8084/user/update'
 ```
 
 - Remove social account + posts **Requires auth**
 ```sh
-curl -u USERNAME -X POST -H "Content-Type: application/json" -d '{
-    "name": "issaquah_wa",
+curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
+    "name": "Oakland,_California",
     "agencies": [
-      {
-        "name": "default",
-        "facebook":[
-           "@cristiano"
-        ]
-      }
-    ],
-    "deleteMode": "true"
+        {
+            "name": "local",
+            "instagram": {
+                "feeds": [
+                    {
+                        "type": "account",
+                        "query": "athletics"
+                    }
+                ]
+            }
+        }
+    ]
 }' 'http://localhost:8084/user/update'
 ```
 
