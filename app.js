@@ -80,10 +80,12 @@ app.use(bodyParser.json()); // for parsing application/json
 // Test home route
 app.get('/', function(req, res) {
     res.send("Hello");
-    AggregatorController.extractData();
+    // AggregatorController.extractData();
 });
 
 app.listen(config.port);
+
+AggregatorController.extractData();
 
 //AggregatorController.startExecution();
 
