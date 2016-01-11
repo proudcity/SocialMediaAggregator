@@ -177,7 +177,7 @@ exports.extractProfilePosts = function(userName, agencyName, profile, lastPostId
 exports.saveProfilePosts = function(profile, posts){
     var postsTasks = [];
 
-    posts.forEach(function(postInfo){
+    _.forEach(posts, function(postInfo){
         postsTasks.push(function(callback){
 
             var post = new Post();
@@ -219,7 +219,7 @@ exports.saveProfilePosts = function(profile, posts){
 exports.saveTagsPosts = function(tag, posts){
     var tagsTasks = [];
 
-    posts.forEach(function(postInfo){
+    _.forEach(posts, function(postInfo){
         tagsTasks.push(function(callback){
 
             if(postInfo.retweet_count!=undefined && postInfo.retweet_count==0){
