@@ -9,7 +9,7 @@ module.exports = {
     "db": _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR')
         ? "mongodb://" + process.env.MONGO_PORT_27017_TCP_ADDR + ":"
     + process.env.MONGO_PORT_27017_TCP_PORT + "/socialmediaaggregator"
-        : "mongodb://sma:sma1@ds031873.mongolab.com:31873/socialmediaaggregator",
+        : "mongodb://localhost:27017/socialmediaaggregator",
     "app": {
         "frequency": 3600,
         "postsLimit": 10,
