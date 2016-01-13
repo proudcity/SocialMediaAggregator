@@ -51,40 +51,40 @@ var extractDataForUser = function(user) {
             TwitterAggregator.aggregateData(user.name, agency);
         }
 
-        if(agency.instagram['feeds'].length) {
-            InstagramAggregator.aggregateData(user.name, agency);
-        }
+        // if(agency.instagram['feeds'].length) {
+        //     InstagramAggregator.aggregateData(user.name, agency);
+        // }
 
-        if(agency.youtube['feeds'].length) {
-            YoutubeAggregator.aggregateData(user.name, agency);
-        }
-        if(agency.socrata['feeds'].length) {
-            SocrataAggregator.aggregateData(user.name, agency);
-        }
+        // if(agency.youtube['feeds'].length) {
+        //     YoutubeAggregator.aggregateData(user.name, agency);
+        // }
+        // if(agency.socrata['feeds'].length) {
+        //     SocrataAggregator.aggregateData(user.name, agency);
+        // }
 
-        if(agency.foursquare['feeds'].length) {
-            FoursquareAggregator.aggregateData(user, agency);
-        }
+        // if(agency.foursquare['feeds'].length) {
+        //     FoursquareAggregator.aggregateData(user, agency);
+        // }
 
-         if(agency.seeclickfix['feeds'].length) {
-             SeeClickFixAggregator.aggregateData(user, agency);
-        }
+        //  if(agency.seeclickfix['feeds'].length) {
+        //      SeeClickFixAggregator.aggregateData(user, agency);
+        // }
 
-         if(agency.rss['feeds'].length) {
-             RSSAggregator.aggregateData(user, agency);
-        }
+        //  if(agency.rss['feeds'].length) {
+        //      RSSAggregator.aggregateData(user, agency);
+        // }
 
-         if(agency.ical['feeds'].length) {
-             ICalendarAggregator.aggregateData(user, agency);
-        }
+        //  if(agency.ical['feeds'].length) {
+        //      ICalendarAggregator.aggregateData(user, agency);
+        // }
 
-        if(agency.yelp['feeds'].length) {
-             YelpAggregator.aggregateData(user, agency);
-        }
+        // if(agency.yelp['feeds'].length) {
+        //      YelpAggregator.aggregateData(user, agency);
+        // }
 
-        if(agency.gtfs['feeds'].length) {
-             GtfsAggregator.aggregateData(user, agency);
-        }
+        // if(agency.gtfs['feeds'].length) {
+        //      GtfsAggregator.aggregateData(user, agency);
+        // }
 
         //if(agency.election['feeds'].length) {
         //    ElectionPollingAggregator.aggregateData(user, agency);

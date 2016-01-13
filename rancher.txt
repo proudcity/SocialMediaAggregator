@@ -1,0 +1,14 @@
+
+# start manager
+cd ~/workspace/docker/rancher
+vagrant up
+
+# start agent
+
+#... try
+docker start rancher-agent
+
+# else
+sudo docker run -d --privileged -v /var/run/docker.sock:/var/run/docker.sock rancher/agent:v0.8.2 http://172.16.5.98:8080/v1/scripts/2F5354442FB5420BB363:1452632400000:CBOXKxJOyHzUKOPWcyLowrcUxNg
+
+# UI @ http://localhost:8080/
