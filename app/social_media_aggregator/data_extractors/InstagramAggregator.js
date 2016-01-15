@@ -28,15 +28,22 @@ exports.ensureAuthenticated = function(callback){
         return callback(true);
     }
     else {
-        fs.readFile(__dirname + '/../../config/instagram-config.js', 'utf8', function (err, data) {
-            if(err) {
-                console.log(err);
-                return callback(false);
-            }
-            data = JSON.parse(data);
-            config.apps.instagram.access_token = data.access_token;
+        config.apps.instagram.access_token = _.get(process, 'env.INSTAGRAM_ACCESS_TOKEN');
+        if(config.apps.instagram.access_token) {
             return callback(true);
-        });
+        }
+        else {
+            var path = __dirname + '/../../config/instagram-config.js';
+            fs.readFile(path, 'utf8', function (err, data) {
+                if(err) {
+                    console.log(err);
+                    return callback(false);
+                }
+                data = JSON.parse(data);
+                config.apps.instagram.access_token = data.access_token;
+                return callback(true);
+            });
+        }
     }
 }
 

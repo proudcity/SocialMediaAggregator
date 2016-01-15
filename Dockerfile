@@ -35,6 +35,7 @@ WORKDIR /src
 
 RUN npm install
 
-EXPOSE 8080
+EXPOSE 443
+EXPOSE 80
 
 CMD forever -l /src/logs/server.log -o /src/logs/out.log -e /src/logs/err.log /src/app.js

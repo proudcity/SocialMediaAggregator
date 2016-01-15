@@ -1,6 +1,9 @@
 var express = require('express'),
     cors = require('cors'),
     path = require('path'),
+    fs = require('fs'),
+    http = require('http'),
+    https = require('https'),
     reqLogger = require('morgan'),
     winston = require('winston'),
     session = require('express-session'),
@@ -11,14 +14,21 @@ var express = require('express'),
     InstagramRoutes = require(__dirname + '/social_media_aggregator/routes/InstagramRoutes'),
     basicAuth = require('basic-auth');
 
+
+// Is docker?
+var is_docker = process.env.MONGO_PORT_27017_TCP_ADDR ? true : false;
+
+// Load config
+
 require('./config/db');
 
-// Load ENV
-var path = process.env.MONGO_PORT_27017_TCP_ADDR 
-         ? '/src/.env'
-         : '.env';
+// env variable
+var path = __dirname + '.env';
 
-require('dotenv').config({path: path});
+// Load ENV, if available
+if(fs.existsSync(path)) {
+  require('dotenv').config({path: path});
+}
 
 global.config = require(__dirname + "/config/config.js");
 
@@ -83,11 +93,22 @@ app.get('/', function(req, res) {
     // AggregatorController.extractData();
 });
 
-app.listen(config.port);
+// Init http
+// app.listen(config.port);
+var httpServer = http.createServer(app);
+httpServer.listen(config.port);
+
+// Init https
+if(is_docker) {
+  var credentials = {
+    key: process.env.SSL_KEY, 
+    cert: process.env.SSL_CRT
+  };
+  var httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(443);
+}
 
 AggregatorController.extractData();
-
-//AggregatorController.startExecution();
 
 // Routes
 app.use('/instagram', InstagramRoutes);
