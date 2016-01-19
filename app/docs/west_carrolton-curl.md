@@ -1,75 +1,46 @@
-curl -u proudCity -X GET -H "Content-Type: application/json" 'http://feeds.proudcity.com:8084/user/West_Carrollton,_Ohio/aggregate'
+curl -u proudCity -X GET -H "Content-Type: application/json" 'http://feeds.proudcity.com:8084/user/Huntsville,_Alabama/aggregate'
 
 curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
     "type": "city",
-    "name": "West_Carrollton,_Ohio",
-    "label": "West Carrollton",
+    "name": "newyork_ny",
+    "label": "NewYork",
     "geojsonUrl": "",
     "agencies": [
         {
             "name": "local",
-            "youtube": {},
-            "twitter": {
-                "frequency": 3000,
+            "youtube": {
+                "frequency": 900,
                 "feeds": [
                     {
                         "type": "account",
-                        "query": "westcarrollton"
+                        "query": "nycgov"
                     }
                 ]
             },
-            "instagram": {},
-            "facebook": {
-                "frequency": 3000,
+            "twitter": {
+                "frequency": 900,
                 "feeds": [
                     {
                         "type": "account",
-                        "query": "westcarrollton"
+                        "query": "nycgov"
                     }
                 ]
-            }
-        },
-        {
-            "name": "policedept",
-            "youtube": {},
-            "twitter": {},
-            "instagram": {},
-            "facebook": {
-                "frequency": 3000,
+            },
+            "instagram": {
+                "frequency": 900,
                 "feeds": [
                     {
                         "type": "account",
-                        "query": "197141623670103"
+                        "query": "nycgov"
                     }
                 ]
-            }
-        },
-        {
-            "name": "firedept",
-            "youtube": {},
-            "twitter": {},
-            "instagram": {},
+            },
             "facebook": {
-                "frequency": 3000,
+                "frequency": 900,
                 "feeds": [
                     {
                         "type": "account",
-                        "query": "269399526526644"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "farmersmarket",
-            "youtube": {},
-            "twitter": {},
-            "instagram": {},
-            "facebook": {
-                "frequency": 3000,
-                "feeds": [
-                    {
-                        "type": "account",
-                        "query": "492270000826837"
+                        "query": "nycgov"
                     }
                 ]
             }
@@ -79,4 +50,8 @@ curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
 
 curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
     "name": "West_Carrollton,_Ohio"
+}' 'http://feeds.proudcity.com:8084/user/delete'
+
+curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
+    "name": "newyork_ny"
 }' 'http://feeds.proudcity.com:8084/user/delete'

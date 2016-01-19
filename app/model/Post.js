@@ -64,7 +64,7 @@ PostSchema.static('getByUser', function(userName, callback){
     this.find({
         userName: userName
     }).exec(function (err, posts) {
-        return callback(posts);
+        return callback(err, posts);
     });
 });
 
@@ -73,7 +73,7 @@ PostSchema.static('getByUserAndServices', function(userName, services, callback)
         userName: userName,
         service: { $in : services}
     }).exec(function (err, posts) {
-        return callback(posts);
+        return callback(err, posts);
     });
 });
 
@@ -93,7 +93,7 @@ PostSchema.static('getByUserServiceTypeAndQuery', function(userName, service, ty
         match: match,
         service: service
     }).exec(function (err, posts) {
-        return callback(posts);
+        return callback(err, posts);
     });
 });
 

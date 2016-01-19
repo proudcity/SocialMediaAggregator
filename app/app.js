@@ -23,7 +23,7 @@ var is_docker = process.env.MONGO_PORT_27017_TCP_ADDR ? true : false;
 require('./config/db');
 
 // env variable
-var path = __dirname + '.env';
+var path = './.env';
 
 // Load ENV, if available
 if(fs.existsSync(path)) {

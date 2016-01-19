@@ -77,7 +77,9 @@ router.route('/:user/feed/:agency?')
                     res.json(postsList);
                 });
             } else if (services!=undefined){
-                services = services.split(",");
+                if(!_.isArray(services)) {  
+                    services = services.split(",");
+                }
 
                 Post.getByUserAndServices(userName, services, function(findErr, posts) {
                     if(findErr) {
