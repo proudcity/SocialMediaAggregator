@@ -202,7 +202,7 @@ exports.saveProfilePosts = function(profile, posts){
             var media = _.get(postInfo, 'entities.media');
             _.forEach(media, function(item) {
                 if(_.has(item, 'sizes.small')) {
-                    post.image = item.media_url + ':small';
+                    post.image = item.media_url_https + ':small';
                     return false;
                 }
             });
@@ -245,7 +245,7 @@ exports.saveTagsPosts = function(tag, posts){
                 var media = _.get(postInfo, 'entities.media');
                 _.forEach(media, function(item) {
                     if(_.has(item, 'sizes.small')) {
-                        post.image = item.media_url + ':small';
+                        post.image = item.media_url_https + ':small';
                         return false;
                     }
                 });
