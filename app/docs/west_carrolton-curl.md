@@ -2,8 +2,8 @@ curl -u proudCity -X GET -H "Content-Type: application/json" 'http://feeds.proud
 
 curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
     "type": "city",
-    "name": "newyork_ny",
-    "label": "NewYork",
+    "name": "Huntsville,_Alabama",
+    "label": "Huntsville, Alabama",
     "geojsonUrl": "",
     "agencies": [
         {
