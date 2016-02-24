@@ -115,4 +115,8 @@ PostSchema.static('deleteByUserAgencyAndService', function(userName, agencyName,
     }).remove().exec();
 });
 
+PostSchema.static('deleteByCrtiteria', function(criteria){
+    this.find(criteria).remove().exec();
+});
+
 module.exports = mongoose.model('Post', PostSchema);
