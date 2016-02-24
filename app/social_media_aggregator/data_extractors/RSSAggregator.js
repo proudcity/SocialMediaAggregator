@@ -11,7 +11,7 @@ var FeedParser = require('feedparser')
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.rss.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'rss', agency.rss.frequency, null, function(){
         $that.extractData(user, agency);
     });
 

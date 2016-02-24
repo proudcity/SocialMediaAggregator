@@ -72,7 +72,7 @@ exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(account){
-        AggregatorController.runWithTimeout(account.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '@' + account.name, 'facebook', account.frequency, null, function(){
             $that.ensureAuthenticated(function(){
                 $that.extractProfilePosts(userName, agencyName, account.name, function(){});
             })
@@ -347,50 +347,55 @@ exports.handleError = function(errCode, errMessage, nextAction){
     var $that = this;
     switch (errCode) {
         // access_token expired
-        case 102: {
+        case 102:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // access_token expired
-        case 104: {
+        case 104:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // access_token expired
-        case 190: {
+        case 190:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // access_token expired
-        case 463: {
+        case 463:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // access_token expired
-        case 467: {
+        case 467:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // OAuthException
-        case 190: {
+        case 190:
             $that.errorHandlers.handleExpiredToken(errCode, nextAction);
-        }
+            break;
+       
 
         // OAuthException
-        case 191: {
+        case 191:
             logger.log('info',"Error %s occurred: %s",errCode, errMessage);
-            return ;
-        }
+            break;
+       
 
         // Bad search key
-        case 803: {
+        case 803:
             logger.log('info', errMessage);
-            return ;
-        }
+            break;
+       
 
-        default: {
+        default:
             logger.log('info',"Failed to handle error %s: %s", errCode, errMessage);
-        }
     }
 }
 

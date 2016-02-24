@@ -9,7 +9,7 @@ var express = require('express'),
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.seeclickfix.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'seeclickfix', agency.seeclickfix.frequency, null, function(){
         $that.proceedIfParamsAreValid(user, function(){
             $that.extractData(user, agency);
         });

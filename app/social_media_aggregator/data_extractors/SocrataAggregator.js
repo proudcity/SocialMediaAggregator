@@ -9,7 +9,7 @@ var express = require('express'),
 exports.aggregateData = function(userName, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.socrata.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'socrata', agency.socrata.frequency, null, function(){
         $that.extractData(userName, agency.name, agency.socrata['feeds']);
     });
 }

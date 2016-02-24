@@ -51,7 +51,7 @@ exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(profile){
-        AggregatorController.runWithTimeout(profile.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '@' + profile.name, 'instagram', profile.frequency, null, function(){
             logger.log('debug', 'Extracting data from Instagram profile %s', profile.name);
             $that.getProfileId(profile.name, function(profileid){
                 if(profileid!=undefined){
@@ -66,7 +66,7 @@ exports.extractData = function(userName, agencyName, criteria){
     });
 
     criteria.tags.forEach(function(tag){
-        AggregatorController.runWithTimeout(tag.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '#' + tag.name, 'instagram', tag.frequency, null, function(){
             logger.log('debug', 'Extracting data from Instagram tag %s', tag.name);
             $that.getLastPostId('#' + tag.name, function(lastPostId){
                 $that.extractTagPosts(tag.name, lastPostId, function(posts){

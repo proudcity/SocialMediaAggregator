@@ -10,7 +10,7 @@ var express = require('express'),
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.gtfs.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'gtfs', agency.gtfs.frequency, null, function(){
         $that.cleanData(user.name, 'gtfs',  agency.name, function(){
             $that.extractData(user, agency);
         });

@@ -65,7 +65,7 @@ PostSchema.static('getLatest', function(criteria, limit, callback){
     this.find(criteria).sort({
         date: -1
     }).limit(limit).exec(function (err, posts) {
-        return posts.length!=0 ? callback(posts) : callback(undefined);
+        return (posts && posts.length!=0) ? callback(posts) : callback(undefined);
     });
 });
 

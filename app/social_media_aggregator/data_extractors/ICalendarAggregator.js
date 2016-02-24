@@ -9,7 +9,7 @@ var express = require('express'),
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.ical.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'ical', agency.ical.frequency, null, function(){
         $that.extractData(user, agency);
     });
 

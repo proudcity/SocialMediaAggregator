@@ -7,7 +7,7 @@ var express = require('express'),
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithTimeout(agency.election.frequency, null, function(){
+    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'election', agency.election.frequency, null, function(){
         $that.extractData(user, agency);
     });
 }

@@ -59,7 +59,7 @@ exports.extractData = function(userName, agencyName, criteria){
 
     criteria.accounts.forEach(function(account){
 
-        AggregatorController.runWithTimeout(account.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '@' + account.name, 'twitter', account.frequency, null, function(){
             $that.getLastPostId('@' + account.name, function(lastPostId){
                 $that.extractProfilePosts(userName, agencyName, account.name, lastPostId, function(posts){
                     if(posts!=undefined){
@@ -71,7 +71,7 @@ exports.extractData = function(userName, agencyName, criteria){
     });
 
     criteria.tags.forEach(function(tag){
-        AggregatorController.runWithTimeout(tag.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '#' + tag.name, 'twitter', tag.frequency, null, function(){
             $that.getLastPostId('#' + tag.name, function(lastPostId){
                 $that.extractTagPosts(userName, agencyName, tag, lastPostId, function(posts){
                     if(posts!=undefined){

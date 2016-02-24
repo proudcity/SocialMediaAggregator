@@ -1,14 +1,16 @@
 var mongoose = require('mongoose'),
-    config = require('../config/config.js');
+    _        = require('lodash'),
+    config   = require('../config/config.js');
 
-var ObjectId = mongoose.Schema.ObjectId;
+var ObjectId = mongoose.Schema.ObjectId,
+    Mixed    = mongoose.Schema.Types.Mixed;
 
 var WatcherSchema = new mongoose.Schema({
-    frequency: Number,
     userName: String,
+    agency: String,
     service: String,
     match: String,
-    intervalID: {type: Number, unique : true}
+    intervalID: {type: Mixed}
 }, {
     collection: 'sma_watchers'
 });
@@ -22,24 +24,30 @@ WatcherSchema.static('getWatcher', function(criteria, callback){
     });
 });
 
-WatcherSchema.static('addInterval', function(userName, match, service, intervalID, callback){
-    this.getWatcher( { '_id': id } ).exec(function (err, watcher) {
-        if(err) {
-            return callback(err);
-        }
-        watcher.intervalID = intervalID;
+WatcherSchema.static('addInterval', function(watcher, criteria, intervalID, callback){
+    var saveWatcher = function() {
+        watcher.intervalID = _.omit(intervalID, ['_idlePrev', '_idleNext']);
         watcher.save(function (saveErr) {
             if(saveErr) {
-                return callback('Save error');
+                return callback(saveErr);
             }
             else {
                 return callback(undefined, watcher);
             }
         });
+    }
+    if(watcher && _.isObject(watcher)) {
+        return saveWatcher();
+    }
+    this.getWatcher( criteria ).exec(function (err, watcher) {
+        if(err) {
+            return callback(err);
+        }
+        return saveWatcher();
     });
 });
 
-WatcherSchema.static('reset', function(criteria, callback){
+WatcherSchema.static('resetAll', function(callback){
     this.find().remove().exec(function(err) {
         if(err) {
             return callback(err);
@@ -47,3 +55,5 @@ WatcherSchema.static('reset', function(criteria, callback){
         return callback(undefined);
     });
 });
+
+module.exports = mongoose.model('Watcher', WatcherSchema);

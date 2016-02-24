@@ -27,7 +27,7 @@ exports.extractSearchData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.tags.forEach(function(search){
-        AggregatorController.runWithTimeout(search.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '#' + search.name, 'youtube', search.frequency, null, function(){
             logger.log('info', 'Extracting data from Youtube search %s', search.name);
             $that.encodeSearchCriteria(search.name, function(criteria){
                 $that.getLastPostTime(criteria, function(lastPostTime){
@@ -38,7 +38,7 @@ exports.extractSearchData = function(userName, agencyName, criteria){
                             searchResults.forEach(function(video){
                                 videosTasks.push(function(callback){
                                     $that.extractVideoInfo(video.id.videoId, function(videoInfo){
-                                        $that.savePost(userName, agencyName, videoInfo, function(){
+                                        $that.savePostSearch(userName, agencyName, '#' + search.name, videoInfo, function(){
                                             callback();
                                         });
                                     });
@@ -59,7 +59,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(channel){
-        AggregatorController.runWithTimeout(channel.frequency, null, function(){
+        AggregatorController.runWithWatcher(userName, agencyName, '@' + channel.name, 'youtube', channel.frequency, null, function(){
             logger.log('info', 'Extracting data from Youtube channel %s', channel.name);
             $that.getChannel(channel.name, function(channelsResult){
                 if(channelsResult!=undefined){

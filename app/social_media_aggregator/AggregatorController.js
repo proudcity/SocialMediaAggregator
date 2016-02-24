@@ -23,11 +23,12 @@ var CRITERIA_TYPE = {
 
 exports.startExecution = function(){
     var $that = this;
-    Watcher.deleteAll(function() {
+    Watcher.resetAll(function() {
         $that.extractData();
     });
 }
 
+// Runs execution on a interval
 exports.runWithTimeout = function(timeout, authenticate, execute){
     // Timeout
     timeout = timeout || config.app.frequency;
@@ -46,10 +47,47 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
     // Set interval
     return setInterval(function(){
         executeQuery();
-    }, timeout * 1000);
+    }, timeout * 1000000);
 }
 
-exports.getWatcher
+// Runs execution based on watcher object in database
+// Will not run again if already running
+exports.runWithWatcher = function(userName, agencyName, match, platform, timeout, authenticate, execute) {
+    
+    var addCriteria = function(criteria) {
+        criteria = criteria || {};
+        criteria['userName'] = userName; 
+        criteria['agency'] =  agencyName; 
+        criteria['match'] =  match;
+        criteria['service'] =  platform;
+        return criteria
+    }
+
+    var $that    = this,
+        criteria = addCriteria();
+
+    // Get running, or create new
+    Watcher.getWatcher(criteria, function(err, watcher) {
+        if(err) {
+            return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+        }
+        // No watcher, so create one
+        else if(!watcher || !_.isObject(watcher)){
+           watcher = new Watcher();
+           watcher = addCriteria(watcher);
+        }
+        // Not running yet, so run
+        if(!watcher.intervalID) {
+            var id = $that.runWithTimeout(timeout, authenticate, execute);
+            Watcher.addInterval(watcher, null, id, function(addErr, watcher) {
+                if(addErr) {
+                    return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                }
+                logger.log('debug', 'Success running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+            });
+        }
+    });
+}
 
 var extractDataForUser = function(user) {
     _.forEach(user.agencies, function(agency) {
