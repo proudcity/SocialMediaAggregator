@@ -23,14 +23,13 @@ var CRITERIA_TYPE = {
 exports.startExecution = function(){
     var $that = this;
     $that.extractData();
-
-    setInterval(function(){
-        $that.extractData();
-    }, config.app.frequency * 1000);
 }
 
 exports.runWithTimeout = function(timeout, authenticate, execute){
-    setInterval(function(){
+    // Timeout
+    timeout = timeout || config.app.frequency;
+    // Function to run
+    var executeQuery = function() {
         if(authenticate!=null){
             authenticate(function(){
                 execute();
@@ -38,6 +37,12 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
         } else {
             execute();
         }
+    };
+    // Run first time
+    executeQuery();
+    // Set interval
+    return setInterval(function(){
+        executeQuery();
     }, timeout * 1000);
 }
 
@@ -75,7 +80,7 @@ var extractDataForUser = function(user) {
             RSSAggregator.aggregateData(user, agency);
         }
 
-         if(agency.ical['feeds'].length) {
+        if(agency.ical['feeds'].length) {
             ICalendarAggregator.aggregateData(user, agency);
         }
 

@@ -60,49 +60,29 @@ PostSchema.static('getLastPostId', function(service, match, callback){
     });
 });
 
-PostSchema.static('getByUser', function(userName, callback){
-    this.find({
-        userName: userName
-    }).exec(function (err, posts) {
-        return callback(err, posts);
-    });
-});
-
-PostSchema.static('getByUserAndServices', function(userName, services, callback){
-    this.find({
-        userName: userName,
-        service: { $in : services}
-    }).exec(function (err, posts) {
-        return callback(err, posts);
-    });
-});
-
-PostSchema.static('getByUserServiceTypeAndQuery', function(userName, service, type, query, callback){
-    var match = '';
-
-    if(type == 'account') {
-        match = '@';
-    } else if(type == 'hashtag') {
-        match = '#';
-    }
-
-    match+= query;
-
-    this.find({
-        userName: userName,
-        match: match,
-        service: service
-    }).exec(function (err, posts) {
-        return callback(err, posts);
-    });
-});
-
 PostSchema.static('getLatest', function(criteria, limit, callback){
     limit =  limit!=undefined ? limit : config.app.feedLimit;
     this.find(criteria).sort({
         date: -1
     }).limit(limit).exec(function (err, posts) {
         return posts.length!=0 ? callback(posts) : callback(undefined);
+    });
+});
+
+PostSchema.static('getByUser', function(userName, limit, callback){
+    this.find({
+        userName: userName
+    }).limit(limit).exec(function (err, posts) {
+        return callback(err, posts);
+    });
+});
+
+PostSchema.static('getByUserAndServices', function(userName, limit, services, callback){
+    this.find({
+        userName: userName,
+        service: { $in : services}
+    }).limit(limit).exec(function (err, posts) {
+        return callback(err, posts);
     });
 });
 

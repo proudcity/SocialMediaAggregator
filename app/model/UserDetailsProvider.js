@@ -24,7 +24,7 @@ exports.getLatLng = function(user, callback){
         var url = "https://maps.googleapis.com/maps/api/place/textsearch/json?";
 
         url += "query=" + user.name;
-        url += "&key=" + config.apps.google.key;
+        url += "&key=" + process.env.GOOGLE_SECRET;
 
         request({
             url: url,
@@ -155,7 +155,7 @@ exports.getRepresentatives = function(user, callback){
         var $that = this;
         var url = "https://www.googleapis.com/civicinfo/v2/representatives?";
         url += "address=" + user.lat + "%2C" + user.lng;
-        url += "&key=" + config.apps.google.key;
+        url += "&key=" + process.env.GOOGLE_SECRET;
 
         request({
             url: url,

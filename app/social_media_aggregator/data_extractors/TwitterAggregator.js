@@ -61,7 +61,6 @@ exports.extractData = function(userName, agencyName, criteria){
 
         AggregatorController.runWithTimeout(account.frequency, null, function(){
             $that.getLastPostId('@' + account.name, function(lastPostId){
-                logger.log('debug','Extracting data from Twitter profile %s', account.name);
                 $that.extractProfilePosts(userName, agencyName, account.name, lastPostId, function(posts){
                     if(posts!=undefined){
                         $that.saveProfilePosts(account, posts);
@@ -74,7 +73,6 @@ exports.extractData = function(userName, agencyName, criteria){
     criteria.tags.forEach(function(tag){
         AggregatorController.runWithTimeout(tag.frequency, null, function(){
             $that.getLastPostId('#' + tag.name, function(lastPostId){
-                logger.log('debug','Extracting data from Twitter tag %s', tag.name);
                 $that.extractTagPosts(userName, agencyName, tag, lastPostId, function(posts){
                     if(posts!=undefined){
                         $that.saveTagsPosts(tag, posts);
@@ -93,7 +91,7 @@ exports.getLastPostId = function(match, callback){
 }
 
 exports.extractTagPosts = function(userName, agencyName, tag, lastPostId, callback){
-    logger.log('debug', "Extracting data from Twitter tag %s", tag);
+    logger.log('info', "Extracting data from Twitter tag %s", tag);
 
     var url = 'https://api.twitter.com/1.1/search/tweets.json?q=%23' + tag;
     url += lastPostId!=undefined ? "&since_id=" + lastPostId : "";
@@ -126,7 +124,7 @@ exports.extractTagPosts = function(userName, agencyName, tag, lastPostId, callba
 }
 
 exports.extractProfilePosts = function(userName, agencyName, profile, lastPostId, callback){
-    logger.log('debug',  "Extracting data from Twitter profile %s", profile);
+    logger.log('info',  "Extracting data from Twitter profile %s", profile);
 
     var url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=' + profile;
     url += lastPostId!=undefined ? "&since_id=" + lastPostId : "";
