@@ -5,4 +5,4 @@ npm-debug.log
 debug.txt
 port.yml
 docker-compose.yml
-docker-compose.dev.tyml
+docker-compose.dev.yml
