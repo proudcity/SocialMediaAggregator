@@ -2,8 +2,6 @@ var _ = require('lodash');
 
 var port =  _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR') ? 80 : 8084;
 
-var externalURL = "http://localhost:" + port;
-
 module.exports = {
     "port": port,
     "db": _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR')
@@ -25,8 +23,7 @@ module.exports = {
         },
         "instagram": {
             "key": "1da7d5643ac64630b99eba92610c7583",
-            "redirectUri": externalURL + "/instagram/authcallback",
-            "access_token": "062a590c028f4b2fad2eb64f8dc71c0d"
+            "redirectUri": "/instagram/authcallback"
         },
         "foursquare" : {
             "key": "1CAZ5UW5UDQ2F1EDEHFOULURU4K3RBWWITBOONJ2XLXPD52V"

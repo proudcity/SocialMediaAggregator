@@ -208,6 +208,8 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
                         if(deleteMode && _.size(agency) === 1) {
                             user.agencies[userAgencyKey].remove();
                             Post.deleteByUserAndAgency(userName, agency.name);
+                            // Set flag so its not re-added
+                            existentAgency = true;
                         }
                         // Modifying / deleting portions of agency
                         else {

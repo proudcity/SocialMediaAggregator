@@ -9,11 +9,11 @@ router.get('/authenticate', function(req, res) {
     api.use({client_id: config.apps.instagram.key,
              client_secret: process.env.INSTAGRAM_SECRET});
 
-    res.redirect(api.get_authorization_url(config.apps.instagram.redirectUri));
+    res.redirect(api.get_authorization_url(process.env.APPURL + config.apps.instagram.redirectUri));
 });
 
 router.get('/authcallback', function(req, res) {
-    api.authorize_user(req.query.code, config.apps.instagram.redirectUri, function(err, result) {
+    api.authorize_user(req.query.code, process.env.APPURL + config.apps.instagram.redirectUri, function(err, result) {
         logger.log('debug', 'Authentication to Instagram was successful!');
 
         if (err) {

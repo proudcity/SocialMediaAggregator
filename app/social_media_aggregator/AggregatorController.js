@@ -23,6 +23,7 @@ var CRITERIA_TYPE = {
 
 exports.startExecution = function(){
     var $that = this;
+    // Reset watcher list on run
     Watcher.resetAll(function() {
         $that.extractData();
     });
@@ -32,6 +33,11 @@ exports.startExecution = function(){
 exports.runWithTimeout = function(timeout, authenticate, execute){
     // Timeout
     timeout = timeout || config.app.frequency;
+    timeout = timeout * 1000;
+    // Deal with artbitrary node timeout limit
+    if(timeout > 2000000000) {
+        timeout = 2000000000;
+    }
     // Function to run
     var executeQuery = function() {
         if(authenticate!=null){
@@ -44,10 +50,11 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
     };
     // Run first time
     executeQuery();
+
     // Set interval
     return setInterval(function(){
         executeQuery();
-    }, timeout * 1000000);
+    }, timeout);
 }
 
 // Runs execution based on watcher object in database
