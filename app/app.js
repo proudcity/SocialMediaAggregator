@@ -108,7 +108,7 @@ if(is_docker) {
   httpsServer.listen(443);
 }
 
-AggregatorController.extractData();
+AggregatorController.startExecution();
 
 // Routes
 app.use('/instagram', InstagramRoutes);
