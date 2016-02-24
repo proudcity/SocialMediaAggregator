@@ -194,62 +194,72 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
             callback('User doesn\'t exist');
         }
         else {
-            _.forEach(agencies, function(agency){
+            // INCOMING agency
+            _.forEach(agencies, function(agency, agencyKey){
 
                 var existentAgency = false;
 
-                _.forEach(user.agencies, function(userAgency, agencyKey) {
+                // EXISTING agency
+                _.forEach(user.agencies, function(userAgency, userAgencyKey) {
                     if(agency.name == userAgency.name) {
 
+                        // Each service in INCOMING agency
                         _.forEach(agency, function(service, serviceName){
 
+                            var toDelete = {};
+
+                            // modify frequency ?
+                            if(service['frequency'] && service['frequency'] > 0) {
+                                user.agencies[userAgencyKey][serviceName]['frequency'] = service['frequency'];
+                            }
+
+                            // Deleting?
                             if(deleteMode) {
-                                var toDelete = [];
 
                                 // Grab items to delete
-                                _.forEach(service.feeds, function(entry){
-
-                                    _.forEach(userAgency[serviceName].feeds, function(existEntry){
+                                _.forEach(service.feeds, function(entry, entryKey){
+                                    _.forEach(userAgency[serviceName].feeds, function(existEntry, existEntryKey){
                                         if(existEntry.type == entry.type && existEntry.query == entry.query){
-                                            toDelete.push(entry);
+                                            toDelete[existEntryKey] = entry;
                                         }
                                     })
-
                                 });
-
+                                // Delete posts
                                 _.forEach(toDelete, function(entry){
                                     logger.log('info',"deleting posts for agency: %s, service: %s, type: %s, query: %s", agency.name, serviceName, entry.type, entry.query);
-                                    //Post.deleteByUserAgencyServiceAndQuery(userName, serviceName, entry.query);
+                                    Post.deleteByCrtiteria({
+                                        userName: userName, 
+                                        service: serviceName,
+                                        agencyName: agency.name,
+                                        match: entry.type == 'account' ? '@' + entry.query : '#' + entry.query
+                                    });
                                 });
+                            }
 
-                                _.forEach(service.feeds, function(entry){
-                                    var toAdd = true;
-
-                                    _.forEach(toDelete, function(entryToDelete){
+                            // Each feed in INCOMING service
+                            _.forEach(service.feeds, function(entry, entryKey){
+                                var toAdd = true;
+                                // Deleting?
+                                if(deleteMode) {
+                                    _.forEach(toDelete, function(entryToDelete, existEntryKey){
                                         if(entryToDelete.type == entry.type && entryToDelete.query == entry.query){
                                             toAdd = false;
+                                            user.agencies[userAgencyKey][serviceName].feeds[existEntryKey].remove();
                                         }
-                                    })
-
-                                    if(toAdd){
-                                        user.agencies[agencyKey][serviceName].feeds.push(entry);
-                                    }
-                                });
-                            } else {
-                                _.forEach(service.feeds, function(entry){
-                                    var toAdd = true;
-
+                                    });
+                                }
+                                else {
                                     _.forEach(userAgency[serviceName].feeds, function(existentEntry){
                                         if(existentEntry.type == entry.type && existentEntry.query == entry.query){
                                             toAdd = false;
                                         }
                                     })
+                                }
 
-                                    if(toAdd){
-                                        user.agencies[agencyKey][serviceName].feeds.push(entry);
-                                    }
-                                });
-                            }
+                                if(toAdd){
+                                    user.agencies[userAgencyKey][serviceName].feeds.push(entry);
+                                }
+                            });
                         });
 
                         existentAgency = true;
