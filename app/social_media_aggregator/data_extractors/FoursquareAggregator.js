@@ -88,7 +88,7 @@ exports.queryPlaceDetails = function(lat, lng, type, posts, callback){
 
             url += "location=" + lat + "," + lng;
             url += "&radius=250";
-            url += "&key=" + config.apps.google.key;
+            url += "&key=" + process.env.GOOGLE_SECRET;
             url += "&types=" + type;
             url += "&query=" + post.venue.name;
 
@@ -128,7 +128,7 @@ exports.getPlaceDetails = function(posts, callback){
                 var url = "https://maps.googleapis.com/maps/api/place/details/json?";
 
                 url += "placeid=" + post.place_id;
-                url += "&key=" + config.apps.google.key;
+                url += "&key=" + process.env.GOOGLE_SECRET;
 
                 request({
                     url: url,

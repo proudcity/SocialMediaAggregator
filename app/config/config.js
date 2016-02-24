@@ -28,9 +28,6 @@ module.exports = {
             "redirectUri": externalURL + "/instagram/authcallback",
             "access_token": "062a590c028f4b2fad2eb64f8dc71c0d"
         },
-        "google": {
-            "key": "AIzaSyA7qCOvn3YgjDqeBuNvOLYqnceVfzfCND0"
-        },
         "foursquare" : {
             "key": "1CAZ5UW5UDQ2F1EDEHFOULURU4K3RBWWITBOONJ2XLXPD52V"
         },

@@ -35,6 +35,27 @@ router.route('/:user/info')
         });
     });
 
+// Limits results to results per service
+var limitReturn = function(postsList, limit, callback) {
+    // First trim empty
+    postsList = _.transform(postsList, function(result, posts) {
+        if(posts && _.isArray(posts) && posts.length) {
+            result.push(posts);
+        }
+    }, []);
+    // empty?
+    if(!postsList.length) {
+        return callback(null, []);
+    }
+    // Then limit per post count
+    var partLimit = Math.ceil(limit/postsList.length);
+    postsList = _.transform(postsList, function(result, posts) {
+        result.push(_.take(posts, partLimit));
+    }, []);
+    // Then flatten array, take limit
+    callback( null, _.take( _.flatten(postsList), limit) );
+}
+
 // Returns array
 var getPostsFromUserAsync = function(userName, agencyName, limit, services, postsList) {
     services = services || ['facebook', 'twitter', 'instagram', 'youtube'];
@@ -48,8 +69,8 @@ var getPostsFromUserAsync = function(userName, agencyName, limit, services, post
             criteria['agencyName'] = agencyName;
         }
         asyncTasks.push(function(callback){ 
-            Post.getLatest(criteria, Math.ceil(limit/services.length), function(posts){
-                postsList.push.apply(postsList, posts);
+            Post.getLatest(criteria, limit, function(posts){
+                postsList.push(posts);
                 callback();
             })
         });
@@ -57,124 +78,93 @@ var getPostsFromUserAsync = function(userName, agencyName, limit, services, post
     return asyncTasks;
 };
 
-router.route('/:user/feed/:agency?')
+router.route('/:user/feed')
     .get(function(req, res) {
         var limit       = _.get(req, 'query.limit') || 10,
             userName    = _.get(req, 'params.user'),
-            agencyName  = _.get(req, 'params.agency'),
-            services    = _.get(req, 'query.services'),
-            service    = _.get(req, 'params.service'),
-            type  = _.get(req, 'params.type'),
-            query  = _.get(req, 'params.query');
+            agencyName  = _.get(req, 'query.agency'),
+            services    = _.get(req, 'query.services');
 
         if(userName!=undefined) {
-            if(agencyName!=undefined ) {
-                var postsList  = [],
-                    asyncTasks = getPostsFromUserAsync(
-                        userName, agencyName, limit, services, postsList
-                    );
-                async.parallel(asyncTasks, function(){
-                    res.json(postsList);
-                });
-            } else if (services!=undefined){
-                if(!_.isArray(services)) {  
-                    services = services.split(",");
-                }
-
-                Post.getByUserAndServices(userName, services, function(findErr, posts) {
-                    if(findErr) {
-                        res.status(500).json(findErr);
-                    }
-                    else {
-                        res.json(posts);
-                    }
-                });
-            } else {
-                Post.getByUser(userName, function(findErr, posts) {
-                    if(findErr) {
-                        res.status(500).json(findErr);
-                    }
-                    else {
-                        res.json(posts);
-                    }
-                });
+            // Alter services if necessary
+            if (services!=undefined && !_.isArray(services)){
+                services = services.split(",");
             }
+            // Prep async
+            var postsList  = [],
+                asyncTasks = getPostsFromUserAsync(
+                    userName, agencyName, limit, services, postsList
+                );
+            // Run async
+            async.parallel(asyncTasks, function(){
+                // Process results
+                limitReturn(postsList, limit, function(limitError, posts) {
+                    if(limitError) {
+                        res.status(500).json({ error: 'message' });
+                    }
+                    else {
+                        res.json(posts);
+                    }
+                }) 
+            });
         }
         else {
             res.status(500).json({ error: 'message' });
         }
     });
 
-router.route('/:user/feed/:service/:type/:query')
-    .get(function(req, res) {
-        var userName    = _.get(req, 'params.user'),
-            service  = _.get(req, 'params.service'),
-            type  = _.get(req, 'params.type'),
-            query  = _.get(req, 'params.query');
+// Returns array
+var getPostsFromAccountsAsync = function(userName, limit, accounts, postsList) {
+    var asyncTasks = [];
+    _.forEach(accounts, function(account) {
+        var colon   = account.indexOf(':'), 
+            service = account.substring(0, colon), 
+            name    = account.substring(colon + 1),
+            criteria = {
+                service: service,
+                account: name,
+                userName: userName
+            };
+        asyncTasks.push(function(callback){ 
+            Post.getLatest(criteria, limit, function(posts){
+                postsList.push(posts);
+                callback();
+            })
+        });
+    });
+    return asyncTasks;
+};
 
-        if(userName!=undefined && service!=undefined && type!=undefined && query!=undefined){
-            Post.getByUserServiceTypeAndQuery(userName, service, type, query, function(findErr, posts) {
-                if(findErr) {
-                    res.status(500).json(findErr);
-                }
-                else {
-                    res.json(posts);
-                }
-            });
+router.route('/:user/feed/accounts/:accounts')
+    .get(function(req, res) {
+        var limit     = _.get(req, 'query.limit') || 10,
+            userName  = _.get(req, 'params.user'),
+            accounts  = _.get(req, 'params.accounts');
+        if(accounts!=undefined) {
+            if(!_.isArray(accounts)) {
+                accounts = accounts.split(",");
+            }
+            // Prep async
+            var postsList  = [],
+                asyncTasks = getPostsFromAccountsAsync(
+                    userName, limit, accounts, postsList
+                );
+            // Run async
+            async.parallel(asyncTasks, function(){
+                // Process results
+                limitReturn(postsList, limit, function(limitError, posts) {
+                    if(limitError) {
+                        res.status(500).json({ error: 'message' });
+                    }
+                    else {
+                        res.json(posts);
+                    }
+                }) 
+            });        }
+        else {
+            res.status(500).json({ error: 'Sorry, that query returned no results' });
         }
     });
-
     
-// router.route('/:user/accounts/delete')
-//     .post(function(req, res) {
-//         var payload = req.body;
-
-//         config.accounts.twitter = removeCriteria(config.accounts.twitter, payload.accounts.twitter, 'twitter');
-//         config.accounts.facebook = removeCriteria(config.accounts.facebook, payload.accounts.facebook, 'facebook');
-//         config.accounts.youtube = removeCriteria(config.accounts.youtube, payload.accounts.youtube, 'youtube');
-//         config.accounts.instagram = removeCriteria(config.accounts.instagram, payload.accounts.instagram, 'instagram');
-
-//         fs.writeFile(__dirname + "/../../config/config.js", "module.exports = " + JSON.stringify(config, null, 4), function(err) {
-//             if(err) {
-//                 return console.log(err);
-//             }
-
-//             logger.log("debug", "Config file updated!");
-//         });
-
-//         res.json({response: 'success'});
-//     });
-
-// var addCriteria = function(destination, newCriteria){
-//     if(newCriteria!=undefined && newCriteria.length!=0){
-//         for(var i in newCriteria){
-//             var criteria = newCriteria[i];
-
-//             if(destination.indexOf(criteria)==-1){
-//                 destination.push(criteria);
-//             }
-//         }
-//     }
-
-//     return destination;
-// }
-
-// exports.removeCriteria = function(destination, criteria, platform){
-//     if(criteria!=undefined && criteria.length!=0){
-//         for(var i in criteria){
-//             var toDelete = criteria[i];
-
-//             var indexToDel = destination.indexOf(toDelete);
-//             if(indexToDel!=-1){
-//                 Post.deleteByPlatformAndAccount(platform, toDelete);
-//                 destination.splice(indexToDel, 1);
-//             }
-//         }
-//     }
-
-//     return destination;
-// }
-
-
 
 module.exports = router;

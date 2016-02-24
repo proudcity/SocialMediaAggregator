@@ -77,7 +77,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
                                 // get favorite, like, or upload
 
                                 // why??
-                                var videoId =  _.get(video, 'contentDetails.upload.resourceId.videoId')
+                                var videoId =  _.get(video, 'contentDetails.upload.videoId')
                                     || _.get(video, 'contentDetails.like.resourceId.videoId')
                                     || _.get(video, 'contentDetails.favorite.resourceId.videoId')
                                     || null;
@@ -109,7 +109,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
 exports.getChannel = function(channel, callback){
     logger.log('debug', 'Extracting data from Youtube channel %s', channel);
     request({
-        url: 'https://www.googleapis.com/youtube/v3/channels?forUsername=' + channel + '&part=contentDetails&key=' + config.apps.google.key,
+        url: 'https://www.googleapis.com/youtube/v3/channels?forUsername=' + channel + '&part=contentDetails&key=' + process.env.GOOGLE_SECRET,
         method: 'GET'
     }, function(error, response, body) {
         if(error || !body || !response) {
@@ -125,7 +125,7 @@ exports.getChannel = function(channel, callback){
 
 exports.getActivityItems = function(channelId, callback){
     request({
-        url: 'https://www.googleapis.com/youtube/v3/activities?maxResults=' + config.app.postsLimit + '&part=contentDetails&channelId=' + channelId + '&key=' + config.apps.google.key,
+        url: 'https://www.googleapis.com/youtube/v3/activities?maxResults=' + config.app.postsLimit + '&part=contentDetails&channelId=' + channelId + '&key=' + process.env.GOOGLE_SECRET,
         method: 'GET'
     }, function(error, response, body) {
         if(error || !body || !response) {
@@ -141,7 +141,7 @@ exports.getActivityItems = function(channelId, callback){
 
 exports.getPlaylistItems = function(playlistIds, callback){
     request({
-        url: 'https://www.googleapis.com/youtube/v3/playlistItems?maxResults=' + config.app.postsLimit + '&part=contentDetails&id=' + playlistIds.join(',') + '&key=' + config.apps.google.key,
+        url: 'https://www.googleapis.com/youtube/v3/playlistItems?maxResults=' + config.app.postsLimit + '&part=contentDetails&id=' + playlistIds.join(',') + '&key=' + process.env.GOOGLE_SECRET,
         method: 'GET'
     }, function(error, response, body) {
         if(error || !body || !response) {
@@ -157,7 +157,7 @@ exports.getPlaylistItems = function(playlistIds, callback){
 
 exports.extractVideoInfo = function(videoId, callback){
     request({
-        url: 'https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,status,statistics&id=' + videoId + '&key=' + config.apps.google.key,
+        url: 'https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet,status,statistics&id=' + videoId + '&key=' + process.env.GOOGLE_SECRET,
         method: 'GET'
     }, function(error, response, body) {
         if(error || !body || !response) {
@@ -183,7 +183,7 @@ exports.getLastPostTime = function(match, callback){
 
 exports.getSearchResults = function(userName, agencyName, searchCriteria, lastPostTime, callback){
     logger.log('debug', 'Extracting data from Youtube search %s', searchCriteria);
-    var url = 'https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=' + searchCriteria + '&type=video&key=' + config.apps.google.key;
+    var url = 'https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=' + searchCriteria + '&type=video&key=' + process.env.GOOGLE_SECRET;
     url += lastPostTime!=undefined ? "&publishedAfter=" + lastPostTime : "";
     url += "&maxResults=" + config.app.postsLimit;
 

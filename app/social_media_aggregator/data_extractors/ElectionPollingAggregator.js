@@ -33,7 +33,7 @@ exports.extractElectionData = function(agency, user, election, callback){
 
     url += "address=" + (election.address!=undefined ? election.address.replace(" ","+") : "");
     url += "&electionId=" + election.electionId;
-    url += "&key=" + config.apps.google.key;
+    url += "&key=" + process.env.GOOGLE_SECRET;
 
     request({
         url: url,
