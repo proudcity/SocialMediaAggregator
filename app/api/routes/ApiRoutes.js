@@ -80,7 +80,7 @@ var getPostsFromUserAsync = function(userName, agencyName, limit, services, post
 
 router.route('/:user/feed')
     .get(function(req, res) {
-        var limit       = _.get(req, 'query.limit') || 10,
+        var limit       = parseInt(_.get(req, 'query.limit'), 10) || 10,
             userName    = _.get(req, 'params.user'),
             agencyName  = _.get(req, 'query.agency'),
             services    = _.get(req, 'query.services');
@@ -137,7 +137,7 @@ var getPostsFromAccountsAsync = function(userName, limit, accounts, postsList) {
 
 router.route('/:user/feed/accounts/:accounts')
     .get(function(req, res) {
-        var limit     = _.get(req, 'query.limit') || 10,
+        var limit     = parseInt(_.get(req, 'query.limit'), 10) || 10,
             userName  = _.get(req, 'params.user'),
             accounts  = _.get(req, 'params.accounts');
         if(accounts!=undefined) {
