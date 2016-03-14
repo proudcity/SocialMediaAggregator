@@ -60,11 +60,9 @@ PostSchema.static('getLastPostId', function(service, match, callback){
     });
 });
 
-PostSchema.static('getLatest', function(criteria, limit, callback){
+PostSchema.static('getPostsByCriteria', function(criteria, limit, sort, callback){
     limit =  limit!=undefined ? limit : config.app.feedLimit;
-    this.find(criteria).sort({
-        date: -1
-    }).limit(limit).exec(function (err, posts) {
+    this.find(criteria).sort(sort).limit(limit).exec(function (err, posts) {
         return (posts && posts.length!=0) ? callback(posts) : callback(undefined);
     });
 });

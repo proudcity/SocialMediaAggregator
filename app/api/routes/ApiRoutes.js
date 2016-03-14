@@ -5,8 +5,9 @@ var express = require('express'),
     config  = require('../../config/config.js'),
     async   = require('async'),
     fs      = require('fs'),
-    _       = require('lodash'), 
-    router = express.Router();
+    _       = require('lodash'),
+    moment  = require('moment-timezone'),
+    router  = express.Router();
 
 
 router.route('/info')
@@ -56,20 +57,45 @@ var limitReturn = function(postsList, limit, callback) {
     callback( null, _.take( _.flatten(postsList), limit) );
 }
 
+// build before / after search criteria
+var buildDateQuery = function(criteria, req) {
+    var field       = _.get(req, 'query.dateField') || 'date',
+        before      = _.get(req, 'query.before'),
+        after       = _.get(req, 'query.after');
+
+    if(!before && !after || !field) {
+        return;
+    }
+    else {
+        criteria[field] = {};
+        if(before) {
+            criteria[field]['$lt'] = moment(before).toISOString();
+        }
+        if(after) {
+            criteria[field]['$gte'] = moment(after).toISOString();
+        }
+    }
+    return;
+}
+
+// build sort criteria
+var buildSortQuery = function(sort, req) {
+    var orderBy       = _.get(req, 'query.orderBy') || 'date',
+        order         = _.get(req, 'query.order') || 'desc';
+
+    sort[orderBy] = order;
+    return;
+}
+
 // Returns array
-var getPostsFromUserAsync = function(userName, agencyName, limit, services, postsList) {
+var getPostsFromUserAsync = function(criteria, limit, services, sort, postsList) {
     services = services || ['facebook', 'twitter', 'instagram', 'youtube'];
     var asyncTasks = [];
     _.forEach(services, function(service) {
-        var criteria = {
-            service: service,
-            userName: userName
-        }
-        if(agencyName) {
-            criteria['agencyName'] = agencyName;
-        }
+        var newCrit = _.clone(criteria);
+        newCrit['service'] = service;
         asyncTasks.push(function(callback){ 
-            Post.getLatest(criteria, limit, function(posts){
+            Post.getPostsByCriteria(newCrit, limit, sort, function(posts){
                 postsList.push(posts);
                 callback();
             })
@@ -83,24 +109,35 @@ router.route('/:user/feed')
         var limit       = parseInt(_.get(req, 'query.limit'), 10) || 10,
             userName    = _.get(req, 'params.user'),
             agencyName  = _.get(req, 'query.agency'),
-            services    = _.get(req, 'query.services');
+            services    = _.get(req, 'query.services'),
+            sort        = {},
+            criteria    = {};
 
         if(userName!=undefined) {
+            // Set up criteria
+            criteria['userName'] = userName;
+            if(agencyName) {
+                criteria['agencyName'] = agencyName;
+            }
             // Alter services if necessary
             if (services!=undefined && !_.isArray(services)){
                 services = services.split(",");
             }
+            // Add date query if present
+            buildDateQuery(criteria, req);
+            // Add sort query
+            buildSortQuery(sort, req);
             // Prep async
             var postsList  = [],
                 asyncTasks = getPostsFromUserAsync(
-                    userName, agencyName, limit, services, postsList
+                    criteria, limit, services, sort, postsList
                 );
             // Run async
             async.parallel(asyncTasks, function(){
                 // Process results
                 limitReturn(postsList, limit, function(limitError, posts) {
                     if(limitError) {
-                        res.status(500).json({ error: 'message' });
+                        res.status(500).json(limitError);
                     }
                     else {
                         res.json(posts);
@@ -114,19 +151,18 @@ router.route('/:user/feed')
     });
 
 // Returns array
-var getPostsFromAccountsAsync = function(userName, limit, accounts, postsList) {
+var getPostsFromAccountsAsync = function(criteria, limit, accounts, sort, postsList) {
     var asyncTasks = [];
     _.forEach(accounts, function(account) {
         var colon   = account.indexOf(':'), 
             service = account.substring(0, colon), 
-            name    = account.substring(colon + 1),
-            criteria = {
-                service: service,
-                account: name,
-                userName: userName
-            };
+            name    = account.substring(colon + 1);
+
+        var newCrit = _.clone(criteria);
+        newCrit['service'] = service;
+        newCrit['account'] = name;
         asyncTasks.push(function(callback){ 
-            Post.getLatest(criteria, limit, function(posts){
+            Post.getPostsByCriteria(newCrit, limit, sort, function(posts){
                 postsList.push(posts);
                 callback();
             })
@@ -139,22 +175,31 @@ router.route('/:user/feed/accounts/:accounts')
     .get(function(req, res) {
         var limit     = parseInt(_.get(req, 'query.limit'), 10) || 10,
             userName  = _.get(req, 'params.user'),
-            accounts  = _.get(req, 'params.accounts');
-        if(accounts!=undefined) {
+            accounts  = _.get(req, 'params.accounts'),
+            sort      = {},
+            criteria  = {};
+        if(userName!=undefined && accounts!=undefined) {
+            // Set up criteria
+            criteria['userName'] = userName;
+            // Add date query if present
+            buildDateQuery(criteria, req);
+            // Add sort query
+            buildSortQuery(sort, req);
+            // Process accounts
             if(!_.isArray(accounts)) {
                 accounts = accounts.split(",");
             }
             // Prep async
             var postsList  = [],
                 asyncTasks = getPostsFromAccountsAsync(
-                    userName, limit, accounts, postsList
+                    criteria, limit, accounts, sort, postsList
                 );
             // Run async
             async.parallel(asyncTasks, function(){
                 // Process results
                 limitReturn(postsList, limit, function(limitError, posts) {
                     if(limitError) {
-                        res.status(500).json({ error: 'message' });
+                        res.status(500).json(limitError);
                     }
                     else {
                         res.json(posts);

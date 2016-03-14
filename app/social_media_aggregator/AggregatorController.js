@@ -21,6 +21,8 @@ var CRITERIA_TYPE = {
     ACCOUNT : 'account'
 }
 
+var processIntervals = {};
+
 exports.startExecution = function(){
     var $that = this;
     // Reset watcher list on run
@@ -61,38 +63,57 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
 // Will not run again if already running
 exports.runWithWatcher = function(userName, agencyName, match, platform, timeout, authenticate, execute) {
     
-    var addCriteria = function(criteria) {
-        criteria = criteria || {};
-        criteria['userName'] = userName; 
-        criteria['agency'] =  agencyName; 
-        criteria['match'] =  match;
-        criteria['service'] =  platform;
-        return criteria
-    }
+    // setTimeout(function() {
+    
+        var addCriteria = function(criteria) {
+            criteria = criteria || {};
+            criteria['userName'] = userName; 
+            criteria['agencyName'] =  agencyName; 
+            criteria['match'] =  match;
+            criteria['service'] =  platform;
+            return criteria
+        }
 
-    var $that    = this,
-        criteria = addCriteria();
+        var $that    = this,
+            criteria = addCriteria();
 
-    // Get running, or create new
-    Watcher.getWatcher(criteria, function(err, watcher) {
+        // Get running, or create new
+        Watcher.getWatcher(criteria, function(err, watcher) {
+            if(err) {
+                return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+            }
+            // No watcher, so create one
+            else if(!watcher || !_.isObject(watcher)){
+               watcher = new Watcher();
+               watcher = addCriteria(watcher);
+            }
+            // Not running yet, so run
+            if(!processIntervals[watcher['_id']]) {
+                var interval = $that.runWithTimeout(timeout, authenticate, execute);
+                Watcher.addInterval(watcher, null, function(addErr, watcher) {
+                    if(addErr) {
+                        return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                    }
+                    // Set object
+                    processIntervals[watcher['_id']] = interval;
+                    logger.log('debug', 'Success running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                });
+            }
+        });
+    // }, 5000);
+}
+
+exports.clearWatcherInterval = function(criteria, callback) {
+    callback = callback || function() {};
+    Watcher.getWatcherSet(criteria, function(err, watchers) {
         if(err) {
-            return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+            callback(err);
         }
-        // No watcher, so create one
-        else if(!watcher || !_.isObject(watcher)){
-           watcher = new Watcher();
-           watcher = addCriteria(watcher);
-        }
-        // Not running yet, so run
-        if(!watcher.intervalID) {
-            var id = $that.runWithTimeout(timeout, authenticate, execute);
-            Watcher.addInterval(watcher, null, id, function(addErr, watcher) {
-                if(addErr) {
-                    return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
-                }
-                logger.log('debug', 'Success running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
-            });
-        }
+        _.map(watchers, function(watcher) {
+            clearInterval(processIntervals[watcher['_id']]);
+            watcher.remove();
+        });
+        callback(null, 'Clear watchers complete');
     });
 }
 

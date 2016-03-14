@@ -3,6 +3,7 @@ var mongoose = require('mongoose'),
     config = require('../config/config.js'),
     Post = require('./Post'),
     UserDetailsProvider = require('./UserDetailsProvider'),
+    AggregatorController = require('../social_media_aggregator/AggregatorController'),
     _ = require("lodash");
 
 var ObjectId = mongoose.Schema.ObjectId;
@@ -187,7 +188,7 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
     this.findUser(userName, function(findErr, user) {
         // Mongo error
         if(findErr) {
-            callback('Connect error')
+            callback(findErr);
         }
         // User exists
         else if(!user) {
@@ -207,6 +208,12 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
                          // Just deleting an agency and all its items
                         if(deleteMode && _.size(agency) === 1) {
                             user.agencies[userAgencyKey].remove();
+                            // remove watchers
+                            AggregatorController.clearWatcherInterval({
+                                userName: userName, 
+                                agencyName: agency.name
+                            });
+                            // Remove posts
                             Post.deleteByUserAndAgency(userName, agency.name);
                             // Set flag so its not re-added
                             existentAgency = true;
@@ -238,12 +245,16 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
                                     // Delete posts
                                     _.forEach(toDelete, function(entry){
                                         logger.log('info',"deleting posts for agency: %s, service: %s, type: %s, query: %s", agency.name, serviceName, entry.type, entry.query);
-                                        Post.deleteByCrtiteria({
+                                        var criteria = {
                                             userName: userName, 
                                             service: serviceName,
                                             agencyName: agency.name,
                                             match: entry.type == 'account' ? '@' + entry.query : '#' + entry.query
-                                        });
+                                        };
+                                        // remove watchers
+                                        AggregatorController.clearWatcherInterval(criteria);
+                                        // delete posts
+                                        Post.deleteByCrtiteria(criteria);
                                     });
                                 }
 
@@ -292,7 +303,7 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
             
             user.save(function (saveErr) {
                 if(saveErr) {
-                    callback('Save error');
+                    callback(saveErr);
                 }
                 else {
                     callback(undefined, user);
@@ -308,7 +319,7 @@ UserSchema.static('createUser', function(data, NewUser, callback) {
     this.findUser(data.name, function(findErr, user) {
         // Mongo error
         if(findErr) {
-            callback('Connect error')
+            callback(findErr)
         }
         // User exists
         else if(user) {
@@ -354,7 +365,7 @@ UserSchema.static('delete', function(userName, agencies, callback) {
     this.findUser(userName, function(findErr, user) {
         // Mongo error
         if(findErr) {
-            callback('Connect error')
+            callback(userName)
         }
         // User exists
         else if(!user) {
@@ -369,6 +380,12 @@ UserSchema.static('delete', function(userName, agencies, callback) {
                     // Delete posts and agency
                     if(_.includes(agencies, agency.name)) {
                         user.agencies[key].remove();
+                        // remove watchers
+                        AggregatorController.clearWatcherInterval({
+                            userName: userName, 
+                            agencyName: agency.name
+                        });
+                        // remove posts
                         Post.deleteByUserAndAgency(userName, agency.name);
                     }
                 });
@@ -389,6 +406,11 @@ UserSchema.static('delete', function(userName, agencies, callback) {
                         callback('Error deleting');
                     }
                     else {
+                        // remove watchers
+                        AggregatorController.clearWatcherInterval({
+                            userName: userName
+                        });
+                        // remove posts
                         Post.deleteByUser(userName);
                         callback(undefined, user);
                     }
