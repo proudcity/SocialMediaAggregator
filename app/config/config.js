@@ -22,7 +22,7 @@ module.exports = {
             "key": "1020627834636909",
         },
         "instagram": {
-            "key": "1da7d5643ac64630b99eba92610c7583",
+            "key": "337e3ed6233e42fb9e8ac37e2bd44c5c",
             "redirectUri": "/instagram/authcallback"
         },
         "foursquare" : {
