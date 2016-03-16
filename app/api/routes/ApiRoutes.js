@@ -151,22 +151,24 @@ router.route('/:user/feed')
     });
 
 // Returns array
-var getPostsFromAccountsAsync = function(criteria, limit, accounts, sort, postsList) {
+var getPostsFromAccountsAsync = function(criteria, limit, accounts, services, sort, postsList) {
     var asyncTasks = [];
     _.forEach(accounts, function(account) {
         var colon   = account.indexOf(':'), 
             service = account.substring(0, colon), 
             name    = account.substring(colon + 1);
-
-        var newCrit = _.clone(criteria);
-        newCrit['service'] = service;
-        newCrit['account'] = name;
-        asyncTasks.push(function(callback){ 
-            Post.getPostsByCriteria(newCrit, limit, sort, function(posts){
-                postsList.push(posts);
-                callback();
-            })
-        });
+        
+        if(!services || _.isArray(services) && _.indexOf(services, service) >= 0) {
+            var newCrit = _.clone(criteria);
+            newCrit['service'] = service;
+            newCrit['account'] = name;
+            asyncTasks.push(function(callback){ 
+                Post.getPostsByCriteria(newCrit, limit, sort, function(posts){
+                    postsList.push(posts);
+                    callback();
+                })
+            });
+        }
     });
     return asyncTasks;
 };
@@ -176,11 +178,16 @@ router.route('/:user/feed/accounts/:accounts')
         var limit     = parseInt(_.get(req, 'query.limit'), 10) || 10,
             userName  = _.get(req, 'params.user'),
             accounts  = _.get(req, 'params.accounts'),
+            services    = _.get(req, 'query.services'),
             sort      = {},
             criteria  = {};
         if(userName!=undefined && accounts!=undefined) {
             // Set up criteria
             criteria['userName'] = userName;
+            // Alter services if necessary
+            if (services!=undefined && !_.isArray(services)){
+                services = services.split(",");
+            }
             // Add date query if present
             buildDateQuery(criteria, req);
             // Add sort query
@@ -192,7 +199,7 @@ router.route('/:user/feed/accounts/:accounts')
             // Prep async
             var postsList  = [],
                 asyncTasks = getPostsFromAccountsAsync(
-                    criteria, limit, accounts, sort, postsList
+                    criteria, limit, accounts, services, sort, postsList
                 );
             // Run async
             async.parallel(asyncTasks, function(){
