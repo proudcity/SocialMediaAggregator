@@ -148,7 +148,8 @@ curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
                 ]
             }
         }
-    ]
+    ],
+    "deleteMode": "true"
 }' 'http://localhost:8084/user/update'
 ```
 
@@ -158,8 +159,9 @@ curl -u USERNAME -X POST -H "Content-Type: application/json" -d '{
     "name": "issaquah_wa",
     "agencies": [
       "default"
-    ]
-}' 'http://localhost:8084/user/delete'
+    ],
+    "deleteMode": "true"
+}' 'http://localhost:8084/user/update'
 ```
 
 - Delete user + posts **Requires auth**
@@ -169,21 +171,43 @@ curl -u USERNAME -X POST -H "Content-Type: application/json" -d '{
 }' 'http://localhost:8084/user/delete'
 ```
 
+## Query API
+
 - Get feed for all user agencies
--- in form /api/:user/feed/
+-- in form ```/api/:user/feed/```
 ```sh
 curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed'
 ```
 
 - Get feed for user agency
--- in form /api/:user/feed/:agency
+-- in form ```/api/:user/feed?agency=AGENCY```
 ```sh
-curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed/default'
+curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed?agency=local'
 ```
 
-- Get feed with criteria
+- Get feed with services criteria
+-- in form ```/api/:user/feed?services[]=SERVICE```
 ```sh
-curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed/default?services[]=facebook'
+curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed?services[]=facebook'
+```
+
+- Get feed from individual accounts
+-- in form ```api/:user/feed/accounts/:accounts```
+```sh
+curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed/accounts/facebook:issaquah,twitter:issaquah'
+```
+
+- Impose time bounds
+-- in form ```/api/:user/feed?before=YYYY-MM-DDT00:00:00.000Z&after=YYYY-MM-DDT00:00:00.000Z```
+```sh
+curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed?before=2016-03-14T00:00:00.000Z&after=2016-03-13T00:00:00.000Z'
+```
+
+- Order feed
+-- ```orderBy``` defaults to "date", ```order``` defaults to "desc"
+-- in form ```/api/:user/feed?orderBy=FIELD&order=ORDER```
+```sh
+curl -X GET -H "Content-Type: application/json" 'http://localhost:8080/api/issaquah_wa/feed?orderBy=date&order=asc'
 ```
 
 Response sample:
