@@ -99,14 +99,14 @@ var httpServer = http.createServer(app);
 httpServer.listen(config.port);
 
 // Init https
-if(is_docker) {
-  var credentials = {
-    key: process.env.SSL_KEY, 
-    cert: process.env.SSL_CRT
-  };
-  var httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(443);
-}
+// if(is_docker) {
+//   var credentials = {
+//     key: process.env.SSL_KEY, 
+//     cert: process.env.SSL_CRT
+//   };
+//   var httpsServer = https.createServer(credentials, app);
+//   httpsServer.listen();
+// }
 
 AggregatorController.startExecution();
 

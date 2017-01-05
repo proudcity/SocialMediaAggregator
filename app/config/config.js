@@ -1,13 +1,17 @@
 var _ = require('lodash');
 
-var port =  _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR') ? 80 : 8084;
+var port =  process.env.PORT ? process.env.PORT : 80;
+
+var mongo_db =  process.env.DB_CONNECTION ? process.env.DB_CONNECTION : '';
+if(!mongo_db) {
+  mongo_db = process.env.MONGO_PORT_27017_TCP_ADDR
+        ? "mongodb://" + process.env.MONGO_PORT_27017_TCP_ADDR + ":" + process.env.MONGO_PORT_27017_TCP_PORT + "/socialmediaaggregator"
+        : "mongodb://localhost:27017/socialmediaaggregator";
+}
 
 module.exports = {
     "port": port,
-    "db": _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR')
-        ? "mongodb://" + process.env.MONGO_PORT_27017_TCP_ADDR + ":"
-    + process.env.MONGO_PORT_27017_TCP_PORT + "/socialmediaaggregator"
-        : "mongodb://localhost:27017/socialmediaaggregator",
+    "db": mongo_db,
     "app": {
         "frequency": 3600,
         "postsLimit": 10,
