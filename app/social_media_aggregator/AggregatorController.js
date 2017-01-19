@@ -1,4 +1,8 @@
-var express            = require('express'),
+"use strict";
+
+var _ = require('lodash'),
+    config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     FacebookAggregator = require('./data_extractors/FacebookAggregator'),
     TwitterAggregator = require('./data_extractors/TwitterAggregator'),
     InstagramAggregator = require('./data_extractors/InstagramAggregator'),
@@ -11,17 +15,16 @@ var express            = require('express'),
     YelpAggregator = require('./data_extractors/YelpAggregator'),
     GtfsAggregator = require('./data_extractors/GtfsAggregator'),
     ElectionPollingAggregator = require('./data_extractors/ElectionPollingAggregator'),
-    config = require("../config/config.js"),
-    _ = require('lodash'),
-    User = require('../model/User'),
-    Watcher = require('../model/Watcher');
+    User = require(__base + 'model/User'),
+    Post = require(__base + 'model/Post'),
+    Watcher = require(__base + 'model/Watcher');
 
 var CRITERIA_TYPE = {
     HASHTAG : 'hashtag',
     ACCOUNT : 'account'
 }
 
-var processIntervals = {};
+var staggering = 0;
 
 exports.startExecution = function(){
     var $that = this;
@@ -34,7 +37,7 @@ exports.startExecution = function(){
 // Runs execution on a interval
 exports.runWithTimeout = function(timeout, authenticate, execute){
     // Timeout
-    timeout = timeout || config.app.frequency;
+    timeout || config.app.frequency;
     timeout = timeout * 1000;
     // Deal with artbitrary node timeout limit
     if(timeout > 2000000000) {
@@ -44,9 +47,11 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
     var executeQuery = function() {
         if(authenticate!=null){
             authenticate(function(){
+                console.log('authenticate: execute');
                 execute();
             });
         } else {
+            console.log('NO authenticate: execute');
             execute();
         }
     };
@@ -62,9 +67,11 @@ exports.runWithTimeout = function(timeout, authenticate, execute){
 // Runs execution based on watcher object in database
 // Will not run again if already running
 exports.runWithWatcher = function(userName, agencyName, match, platform, timeout, authenticate, execute) {
-    
-    // setTimeout(function() {
-    
+    var $that    = this;
+    staggering = staggering + 3000;
+    console.log(staggering);
+    setTimeout(function() {
+        
         var addCriteria = function(criteria) {
             criteria = criteria || {};
             criteria['userName'] = userName; 
@@ -74,13 +81,13 @@ exports.runWithWatcher = function(userName, agencyName, match, platform, timeout
             return criteria
         }
 
-        var $that    = this,
-            criteria = addCriteria();
+        
+        var criteria = addCriteria();
 
         // Get running, or create new
         Watcher.getWatcher(criteria, function(err, watcher) {
             if(err) {
-                return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                return logger.log('error', 'Error running watcher for account: %s, user: %s, agency: %s, service: %s', match, userName, agencyName, platform);
             }
             // No watcher, so create one
             else if(!watcher || !_.isObject(watcher)){
@@ -88,33 +95,17 @@ exports.runWithWatcher = function(userName, agencyName, match, platform, timeout
                watcher = addCriteria(watcher);
             }
             // Not running yet, so run
-            if(!processIntervals[watcher['_id']]) {
+            if(!Watcher.isRunning(watcher)) {
                 var interval = $that.runWithTimeout(timeout, authenticate, execute);
-                Watcher.addInterval(watcher, null, function(addErr, watcher) {
+                Watcher.addInterval(watcher, interval, null, function(addErr, watcher) {
                     if(addErr) {
-                        return logger.log('error', 'Error running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                        return logger.log('error', 'Error running watcher for account: %s, user: %s, agency: %s, service: %s', match, userName, agencyName, platform);
                     }
-                    // Set object
-                    processIntervals[watcher['_id']] = interval;
-                    logger.log('debug', 'Success running watcher for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+                    logger.log('info', 'Success running watcher for account: %s, user: %s, agency: %s, service: %s', match, userName, agencyName, platform);
                 });
             }
         });
-    // }, 5000);
-}
-
-exports.clearWatcherInterval = function(criteria, callback) {
-    callback = callback || function() {};
-    Watcher.getWatcherSet(criteria, function(err, watchers) {
-        if(err) {
-            callback(err);
-        }
-        _.map(watchers, function(watcher) {
-            clearInterval(processIntervals[watcher['_id']]);
-            watcher.remove();
-        });
-        callback(null, 'Clear watchers complete');
-    });
+    }, staggering);
 }
 
 var extractDataForUser = function(user) {
@@ -215,8 +206,28 @@ exports.gatherSearchCriteria = function(userName, agencyName, queryList, platfor
             }
         });
 
-        logger.log('debug', 'Gathered search criteria for account: %s, agency: %s, service: %s', [userName, agencyName, platform]);
+        logger.log('info', 'Gathered search criteria for user: %s, agency: %s, service: %s', userName, agencyName, platform);
         return callback(searchCriteria);
     }
 }
 
+// Save a post
+exports.savePost = function(post, callback) {
+    let toSave = _.assignIn(new Post(), post);
+    toSave.save().then(
+        (newPost) => {
+            logger.log(
+                'info', 
+                'Saved _id: %s, name: %s, agency: %s, service: %s', 
+                newPost._id, post.userName, post.agencyName, post.service
+            );
+            callback();
+        }
+    )
+    .catch(
+       (reason) => {
+            logger.log( 'error', reason.errmsg );
+            callback();
+        }
+    );
+}

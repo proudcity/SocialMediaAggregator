@@ -1,12 +1,12 @@
 var express = require('express'),
     request = require('request'),
-    User = require('../../model/User'),
-    config = require('../../config/config.js'),
+    User = require(__base + 'model/User'),
+    config = require(__base + 'config/config.js'),
     async = require('async'),
     fs = require('fs'),
     _ = require('lodash'), 
     router = express.Router(),
-    AggregatorController = require('../../social_media_aggregator/AggregatorController');
+    AggregatorController = require(__base + 'social_media_aggregator/AggregatorController');
 
 router.route('/create')
     .all(function(req, res, next) {

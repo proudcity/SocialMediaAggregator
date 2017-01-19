@@ -1,9 +1,12 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
     FB = require('fb'),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post');
+    Aggregator = require('../AggregatorController'),
+    Post = require(__base + 'model/Post');
 
 var session = {};
 var searchCriteria = {};
@@ -15,7 +18,7 @@ var bufferedPagesInExec = [];
 exports.aggregateData = function(userName, agency) {
     var $that = this;
 
-    AggregatorController.gatherSearchCriteria(userName, agency.name, agency.facebook, 'facebook', function(criteria){
+   Aggregator.gatherSearchCriteria(userName, agency.name, agency.facebook, 'facebook', function(criteria){
         searchCriteria = criteria;
 
         $that.extractData(userName, agency.name, criteria);
@@ -28,7 +31,7 @@ exports.authenticate = function(callback){
         client_secret: process.env.FACEBOOK_SECRET,
         grant_type: 'client_credentials'
     }, function (res) {
-        logger.log('debug',"Authentication to Facebook was successful!");
+        logger.log('info',"Authentication to Facebook was successful!");
 
         session.access_token    = res.access_token;
         session.expires         = new Date().getTime() + (res.expires || 0) * 1000;
@@ -44,7 +47,7 @@ exports.ensureAuthenticated = function(callback){
         if(sessionValid){
             return callback();
         } else {
-            logger.log('debug',"Facebook session not valid");
+            logger.log('info',"Facebook session not valid");
             $that.authenticate(function(){
                 return callback();
             });
@@ -72,7 +75,7 @@ exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(account){
-        AggregatorController.runWithWatcher(userName, agencyName, '@' + account.name, 'facebook', account.frequency, null, function(){
+        Aggregator.runWithWatcher(userName, agencyName, '@' + account.name, 'facebook', account.frequency, null, function(){
             $that.ensureAuthenticated(function(){
                 $that.extractProfilePosts(userName, agencyName, account.name, function(){});
             })
@@ -324,7 +327,7 @@ var extractAddress = function(position){
 
 // saves the post into the db
 exports.savePost = function(postInfo, callback) {
-    var post = new Post();
+    var post = {};
     post.userName = postInfo.userName;
     post.agencyName = postInfo.agencyName;
     post.id = postInfo.id;
@@ -339,8 +342,7 @@ exports.savePost = function(postInfo, callback) {
     post.likes = postInfo.likes;
     post.image = postInfo.full_picture || postInfo.picture;
 
-    post.save();
-    callback();
+    Aggregator.savePost(post, callback);
 }
 
 exports.handleError = function(errCode, errMessage, nextAction){

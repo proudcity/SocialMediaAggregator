@@ -1,15 +1,18 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post'),
+    Aggregator = require('../AggregatorController'),
+    Post = require(__base + 'model/Post'),
     _ = require('lodash'),
     fs = require('fs');
 
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'foursquare', agency.foursquare.frequency, null, function(){
+   Aggregator.runWithWatcher(user.name, agency.name, agency.name, 'foursquare', agency.foursquare.frequency, null, function(){
         $that.extractData(user, agency.name, agency.foursquare['feeds']);
     });
 }
@@ -163,7 +166,7 @@ exports.savePosts = function(userName, agencyName, match, posts, callback){
 
         posts.forEach(function(postInfo){
             postsTasks.push(function(callback){
-                var post = new Post();
+                var post = {};
 
                 post.userName = userName;
                 post.agencyName = agencyName;
@@ -209,9 +212,7 @@ exports.savePosts = function(userName, agencyName, match, posts, callback){
                 post.url = 'https://foursquare.com/v/' + post.id;
                 post.icon = '';
 
-                post.save();
-
-                callback();
+                 Aggregator.savePost(post, callback);
             });
         });
 

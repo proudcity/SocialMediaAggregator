@@ -1,7 +1,9 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post'),
+    Aggregator = require('../AggregatorController'),
     _ = require('lodash'),
     fs = require('fs'),
     icalendar = require('icalendar');
@@ -9,7 +11,7 @@ var express = require('express'),
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'ical', agency.ical.frequency, null, function(){
+   Aggregator.runWithWatcher(user.name, agency.name, agency.name, 'ical', agency.ical.frequency, null, function(){
         $that.extractData(user, agency);
     });
 
@@ -48,7 +50,7 @@ exports.extractICalPosts = function(url, agencyName, userName, match){
 exports.savePost = function(postInfo, userName, agencyName, match){
 
     if(postInfo!=undefined){
-        var post = new Post();
+        var post = {};
 
         post.userName = userName;
         post.agencyName = agencyName;

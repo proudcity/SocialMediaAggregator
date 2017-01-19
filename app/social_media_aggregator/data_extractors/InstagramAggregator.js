@@ -1,9 +1,12 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
-    api = require('instagram-node').instagram(),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post'),
+    Post = require(__base + 'model/Post'),
+    Aggregator = require('../AggregatorController'),
+    Scraper = require('./InstagramScraper'),
     _ = require('lodash'),
     fs = require('fs');
 
@@ -11,87 +14,43 @@ var searchCriteria = {};
 
 exports.aggregateData = function(userName, agency) {
     var $that = this;
-
-    AggregatorController.gatherSearchCriteria(userName, agency.name, agency.instagram, 'instagram', function(criteria){
+   Aggregator.gatherSearchCriteria(userName, agency.name, agency.instagram, 'instagram', function(criteria){
         searchCriteria = criteria;
-
-        $that.ensureAuthenticated(function(isAuthenticated){
-            if(isAuthenticated){
-                $that.extractData(userName, agency.name, criteria);
-            }
-        });
+        $that.extractData(userName, agency.name, criteria);
     });
-}
-
-exports.ensureAuthenticated = function(callback){
-    if(config.apps.instagram.access_token) {
-        return callback(true);
-    }
-    else {
-        config.apps.instagram.access_token = _.get(process, 'env.INSTAGRAM_ACCESS_TOKEN');
-        if(config.apps.instagram.access_token) {
-            return callback(true);
-        }
-        else {
-            var path = __dirname + '/../../config/instagram-config.js';
-            fs.readFile(path, 'utf8', function (err, data) {
-                if(err) {
-                    console.log(err);
-                    return callback(false);
-                }
-                data = JSON.parse(data);
-                config.apps.instagram.access_token = data.access_token;
-                return callback(true);
-            });
-        }
-    }
 }
 
 exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(profile){
-        AggregatorController.runWithWatcher(userName, agencyName, '@' + profile.name, 'instagram', profile.frequency, null, function(){
-            logger.log('debug', 'Extracting data from Instagram profile %s', profile.name);
-            $that.getProfileId(profile.name, function(profileid){
-                if(profileid!=undefined){
-                    $that.getLastPostId('@' + profile.name, function(lastPostId){
-                        $that.extractProfilePosts(profileid, lastPostId, function(posts){
-                            $that.savePosts(userName, agencyName, '@' + profile.name, posts);
-                        });
-                    });
-                }
-            });
-        });
-    });
-
-    criteria.tags.forEach(function(tag){
-        AggregatorController.runWithWatcher(userName, agencyName, '#' + tag.name, 'instagram', tag.frequency, null, function(){
-            logger.log('debug', 'Extracting data from Instagram tag %s', tag.name);
-            $that.getLastPostId('#' + tag.name, function(lastPostId){
-                $that.extractTagPosts(tag.name, lastPostId, function(posts){
-                    if(posts!=undefined){
-                        $that.savePosts(userName, agencyName, '#' + tag.name, posts);
+        Aggregator.runWithWatcher(userName, agencyName, '@' + profile.name, 'instagram', profile.frequency, null, function(){
+            logger.log('info', 'Extracting data from Instagram profile %s', profile.name);
+            $that.getLastPostId('@' + profile.name, function(lastPostId){
+                Scraper(profile.name, lastPostId, function(issue, posts) {
+                    // Error
+                    if(issue) {
+                        if( _.isObject(issue) ) {
+                            logger.log( 
+                                'error', 
+                                'Instragram scraping issue: %s, agencyName: %s, profile: %s',
+                                userName, agencyName, profile.name, issue
+                            );
+                        }
+                        else {
+                            logger.log( 
+                                'error', 
+                                'Instragram scraping issue: %s, agencyName: %s, profile: %s, reason: %s',
+                                userName, agencyName, profile.name, issue
+                            );
+                        }
+                    }
+                    else {
+                        $that.savePosts(userName, agencyName, '@' + profile.name, posts, lastPostId);
                     }
                 });
             });
         });
-    });
-}
-
-exports.getProfileId = function(profile, callback){
-    request({
-        url: 'https://api.instagram.com/v1/users/search?q=' + profile + '&access_token=' + config.apps.instagram.access_token,
-        method: 'GET'
-    }, function(error, response, body) {
-        if(error || !body || !response) {
-            return callback(undefined);
-        }
-        else {
-            body = JSON.parse(body);
-
-            return body.data!=undefined && body.data.length!=0 ? callback(body.data[0].id) : callback(undefined);
-        }
     });
 }
 
@@ -101,53 +60,14 @@ exports.getLastPostId = function(match, callback){
     });
 }
 
-exports.extractProfilePosts = function(profileid, lastPostId, callback){
-    var url = 'https://api.instagram.com/v1/users/' + profileid + '/media/recent/?access_token=' + config.apps.instagram.access_token
-    url += lastPostId!=undefined ? "&min_id=" + lastPostId : "";
-    url += "&count=" + config.app.postsLimit;
-
-    request({
-        url: url,
-        method: 'GET'
-    }, function(error, response, body) {
-        if(error || !body || !response) {
-            return callback(undefined);
-        }
-        else {
-            body = JSON.parse(body);
-
-            return callback(body.data);
-        }
-    });
-}
-
-exports.extractTagPosts = function(tag, lastPostId, callback){
-    logger.log('debug', 'Extracting data from Instagram tag %s', tag);
-    var url = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent/?access_token=' + config.apps.instagram.access_token
-    url += lastPostId!=undefined ? "&min_id=" + lastPostId : "";
-    url += "&count=" + config.app.postsLimit;
-
-    request({
-        url: url,
-        method: 'GET'
-    }, function(error, response, body) {
-        if(error || !body || !response) {
-            return callback(undefined);
-        }
-        else {
-            body = JSON.parse(body);
-
-            return body.data!=undefined && body.data.length!=0 ? callback(body.data) : callback(undefined);
-        }
-    });
-}
-
-exports.savePosts = function(userName, agencyName, match, posts){
+exports.savePosts = function(userName, agencyName, match, posts, lastPostId){
     var postsTasks = [];
-
-    posts.forEach(function(postInfo){
+    _.forEach(posts, function(postInfo){
+        if(lastPostId && postInfo.id === lastPostId) {
+            return false;
+        }
         postsTasks.push(function(callback){
-            var post = new Post();
+            var post = {};
 
             post.userName = userName;
             post.agencyName = agencyName;
@@ -157,7 +77,7 @@ exports.savePosts = function(userName, agencyName, match, posts){
             post.service = 'instagram';
             post.account = postInfo.user.username;
             post.match = match;
-            post.image = _.get(postInfo, 'images.low_resolution.url') || _.get(postInfo, 'images.thumbnail.url');
+            post.image = _.get(postInfo, 'images.standard_resolution.url') || _.get(postInfo, 'images.thumbnail.url');
             post.text = postInfo.caption!=null && postInfo.caption.text!=null ? postInfo.caption.text : "";
             post.likes = postInfo.likes!=undefined && postInfo.likes.count!=undefined ? postInfo.likes.count : 0;
             post.url = postInfo.link;
@@ -171,8 +91,7 @@ exports.savePosts = function(userName, agencyName, match, posts){
                 }
             }
 
-            post.save();
-            callback();
+            Aggregator.savePost(post, callback);
         });
     });
 

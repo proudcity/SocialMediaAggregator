@@ -1,6 +1,6 @@
 var mongoose = require('mongoose'),
     random = require('mongoose-simple-random'),
-    config = require('../config/config.js'),
+    config = require(__base + 'config/config'),
     moment = require('moment-timezone');
 
 var ObjectId = mongoose.Schema.ObjectId;
@@ -31,8 +31,7 @@ var PostSchema = new mongoose.Schema({
 PostSchema.plugin(random);
 var RandomPostsProvider = mongoose.model('RandomPostsProvider', PostSchema);
 
-
-PostSchema.static('getLastPostTime', function(service, match, callback){
+PostSchema.statics.getLastPostTime = function(service, match, callback){
     this.find({
         service: service,
         match: match
@@ -47,9 +46,9 @@ PostSchema.static('getLastPostTime', function(service, match, callback){
             return callback(undefined)
         }
     });
-});
+};
 
-PostSchema.static('getLastPostId', function(service, match, callback){
+PostSchema.statics.getLastPostId = function(service, match, callback){
     this.find({
         service: service,
         match: match
@@ -58,63 +57,63 @@ PostSchema.static('getLastPostId', function(service, match, callback){
     }).exec(function (err, posts) {
         return (posts && posts.length!=0) && posts.length!=0 ? callback(posts[0].id) : callback(undefined);
     });
-});
+};
 
-PostSchema.static('getPostsByCriteria', function(criteria, limit, sort, callback){
+PostSchema.statics.getPostsByCriteria = function(criteria, limit, sort, callback){
     limit =  limit!=undefined ? limit : config.app.feedLimit;
     this.find(criteria).sort(sort).limit(limit).exec(function (err, posts) {
         return (posts && posts.length!=0) ? callback(posts) : callback(undefined);
     });
-});
+};
 
-PostSchema.static('getByUser', function(userName, limit, callback){
+PostSchema.statics.getByUser = function(userName, limit, callback){
     this.find({
         userName: userName
     }).limit(limit).exec(function (err, posts) {
         return callback(err, posts);
     });
-});
+};
 
-PostSchema.static('getByUserAndServices', function(userName, limit, services, callback){
+PostSchema.statics.getByUserAndServices = function(userName, limit, services, callback){
     this.find({
         userName: userName,
         service: { $in : services}
     }).limit(limit).exec(function (err, posts) {
         return callback(err, posts);
     });
-});
+};
 
-PostSchema.static('getRandom', function(criteria, limit, callback){
+PostSchema.statics.getRandom = function(criteria, limit, callback){
     RandomPostsProvider.findRandom(criteria, {}, {limit: limit!=undefined ? limit : config.app.feedLimit}, function(err, results) {
         if (!err) {
             callback(results);
         }
     });
-});
+};
 
-PostSchema.static('deleteByUser', function(userName){
+PostSchema.statics.deleteByUser = function(userName){
     this.find({
         userName: userName
     }).remove().exec();
-});
+};
 
-PostSchema.static('deleteByUserAndAgency', function(userName, agencyName){
+PostSchema.statics.deleteByUserAndAgency = function(userName, agencyName){
     this.find({
         userName: userName,
         agencyName: agencyName
     }).remove().exec();
-});
+};
 
-PostSchema.static('deleteByUserAgencyAndService', function(userName, agencyName, platform){
+PostSchema.statics.deleteByUserAgencyAndService = function(userName, agencyName, platform){
     this.find({
         userName: userName,
         agencyName: agencyName,
         service: platform
     }).remove().exec();
-});
+};
 
-PostSchema.static('deleteByCrtiteria', function(criteria){
+PostSchema.statics.deleteByCrtiteria = function(criteria){
     this.find(criteria).remove().exec();
-});
+};
 
 module.exports = mongoose.model('Post', PostSchema);

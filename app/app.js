@@ -1,38 +1,30 @@
-var express = require('express'),
+"use strict";
+
+global.__base = __dirname + '/';
+
+let express = require('express'),
     cors = require('cors'),
-    path = require('path'),
-    fs = require('fs'),
     http = require('http'),
     https = require('https'),
     reqLogger = require('morgan'),
-    winston = require('winston'),
     session = require('express-session'),
     bodyParser = require('body-parser'),
-    AggregatorController = require(__dirname + '/social_media_aggregator/AggregatorController'),
-    ApiRoutes = require(__dirname + '/api/routes/ApiRoutes'),
-    UserRoutes = require(__dirname + '/api/routes/UserRoutes'),
-    InstagramRoutes = require(__dirname + '/social_media_aggregator/routes/InstagramRoutes'),
     basicAuth = require('basic-auth');
 
-
-// Is docker?
-var is_docker = process.env.MONGO_PORT_27017_TCP_ADDR ? true : false;
-
 // Load config
+require(__base + 'config/db');
+let config = require(__base + 'config/config');
 
-require('./config/db');
+// Load logging
+let logger = require(__base + 'config/logger');
 
-// env variable
-var path = './.env';
+// Load submodules
+let AggregatorController = require(__base + 'social_media_aggregator/AggregatorController'),
+    ApiRoutes = require(__base + 'api/routes/ApiRoutes'),
+    UserRoutes = require(__base + 'api/routes/UserRoutes'),
+    InstagramRoutes = require(__base + 'social_media_aggregator/routes/InstagramRoutes');
 
-// Load ENV, if available
-if(fs.existsSync(path)) {
-  require('dotenv').config({path: path});
-}
-
-global.config = require(__dirname + "/config/config.js");
-
-var app = express();
+let app = express();
 
 global.routeAuth = function (req, res, next) {
   function unauthorized(res) {
@@ -52,27 +44,6 @@ global.routeAuth = function (req, res, next) {
     return unauthorized(res);
   };
 };
-
-winston.level = config.app.logging_level;
-global.logger = new (winston.Logger)({
-    transports: [
-        new (winston.transports.Console)({
-            timestamp: function() {
-                var dt = new Date();
-                var formatted = dt.getDate() + "/" + (dt.getMonth() + 1) + "/" + dt.getFullYear() + " ";
-                formatted += dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds() + ":" + dt.getMilliseconds();
-
-                return formatted;
-            },
-            formatter: function(options) {
-                // Return string will be passed to logger.
-                return options.timestamp() +' '+ options.level.toUpperCase() +' '+ (undefined !== options.message ? options.message : '') +
-                    (options.meta && Object.keys(options.meta).length ? '\n\t'+ JSON.stringify(options.meta) : '' );
-            }
-        }),
-        new (winston.transports.File)({ filename: 'app.log' })
-    ]
-});
 
 app.use(cors({
     'methods': ['GET', 'POST']
@@ -94,19 +65,18 @@ app.get('/', function(req, res) {
 });
 
 // Init http
-// app.listen(config.port);
-var httpServer = http.createServer(app);
+let httpServer = http.createServer(app);
 httpServer.listen(config.port);
 
 // Init https
-// if(is_docker) {
-//   var credentials = {
-//     key: process.env.SSL_KEY, 
-//     cert: process.env.SSL_CRT
-//   };
-//   var httpsServer = https.createServer(credentials, app);
-//   httpsServer.listen();
-// }
+if(process.env.SSL_KEY && process.env.SSL_CRT) {
+  const credentials = {
+    key: process.env.SSL_KEY, 
+    cert: process.env.SSL_CRT
+  };
+  let httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(config.https_port);
+}
 
 AggregatorController.startExecution();
 

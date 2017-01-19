@@ -1,7 +1,14 @@
-var _ = require('lodash');
+var _ = require('lodash'),
+    path = require('path'),
+    fs = require('fs');
 
-var port =  process.env.PORT ? process.env.PORT : 80;
+// Load ENV, if available
+var path = './.env';
+if(fs.existsSync(path)) {
+  require('dotenv').config({path: path});
+}
 
+// Get Mongo connection info
 var mongo_db =  process.env.DB_CONNECTION ? process.env.DB_CONNECTION : '';
 if(!mongo_db) {
   mongo_db = process.env.MONGO_PORT_27017_TCP_ADDR
@@ -10,13 +17,14 @@ if(!mongo_db) {
 }
 
 module.exports = {
-    "port": port,
+    "port": process.env.PORT ? process.env.PORT : 80,
+    "https_port": process.env.HTTPS_PORT ? process.env.HTTPS_PORT : 443,
     "db": mongo_db,
     "app": {
         "frequency": 3600,
         "postsLimit": 10,
         "feedLimit": 5,
-        "logging_level": "info"
+        "logging_level": "debug"
     },
     "apps": {
         "twitter": {
@@ -26,7 +34,7 @@ module.exports = {
             "key": "1020627834636909",
         },
         "instagram": {
-            "key": "337e3ed6233e42fb9e8ac37e2bd44c5c",
+            "key": "2f086e0ff067457d8436487aa3687808",
             "redirectUri": "/instagram/authcallback"
         },
         "foursquare" : {

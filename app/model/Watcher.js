@@ -13,31 +13,40 @@ var WatcherSchema = new mongoose.Schema({
     collection: 'sma_procwatcher'
 });
 
-WatcherSchema.static('getWatcher', function(criteria, callback){
+// Container for the watcher intervals
+var processIntervals = {};
+
+WatcherSchema.statics.getWatcher = function(criteria, callback){
     this.findOne(criteria).exec(function (err, watcher) {
         if(err) {
             return callback(err);
         }
         return watcher ? callback(undefined, watcher) : callback(undefined, undefined);
     });
-});
+};
 
-WatcherSchema.static('getWatcherSet', function(criteria, callback){
+WatcherSchema.statics.getWatcherSet = function(criteria, callback){
     this.find(criteria).exec(function (err, watchers) {
         if(err) {
             return callback(err);
         }
         return watchers ? callback(undefined, watchers) : callback(undefined, undefined);
     });
-});
+};
 
-WatcherSchema.static('addInterval', function(watcher, criteria, callback){
+WatcherSchema.statics.isRunning = function(watcher) {
+    return processIntervals[watcher['_id']];
+}
+
+WatcherSchema.statics.addInterval = function(watcher, interval, criteria, callback){
     var saveWatcher = function() {
         watcher.save(function (saveErr) {
             if(saveErr) {
                 return callback(saveErr);
             }
             else {
+                // Set object
+                processIntervals[watcher['_id']] = interval;
                 return callback(undefined, watcher);
             }
         });
@@ -51,9 +60,23 @@ WatcherSchema.static('addInterval', function(watcher, criteria, callback){
         }
         return saveWatcher();
     });
-});
+};
 
-WatcherSchema.static('resetAll', function(callback){
+WatcherSchema.statics.clearInterval = function(criteria, callback) {
+    callback = callback || function() {};
+    this.getWatcherSet(criteria, function(err, watchers) {
+        if(err) {
+            callback(err);
+        }
+        _.map(watchers, function(watcher) {
+            clearInterval(processIntervals[watcher['_id']]);
+            watcher.remove();
+        });
+        callback(null, 'Clear watchers complete');
+    });
+};
+
+WatcherSchema.statics.resetAll = function(callback){
     this.find().remove().exec(function(err) {
         if(err) {
             return callback(err);
@@ -61,16 +84,6 @@ WatcherSchema.static('resetAll', function(callback){
         console.log('deleted');
         return callback(undefined);
     });
-});
-
-WatcherSchema.static('resetAll', function(callback){
-    this.find().remove().exec(function(err) {
-        if(err) {
-            return callback(err);
-        }
-        console.log('deleted');
-        return callback(undefined);
-    });
-});
+};
 
 module.exports = mongoose.model('Watcher', WatcherSchema);

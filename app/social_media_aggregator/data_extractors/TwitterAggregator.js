@@ -1,10 +1,13 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
     btoa = require('btoa'),
-    AggregatorController = require('../AggregatorController'),
+    Aggregator = require('../AggregatorController'),
     _ = require('lodash'),
-    Post = require('../../model/Post');
+    Post = require(__base + 'model/Post');
 
 var session = {};
 var searchCriteria = {};
@@ -12,7 +15,7 @@ var searchCriteria = {};
 exports.aggregateData = function(userName, agency) {
     var $that = this;
 
-    AggregatorController.gatherSearchCriteria(userName, agency.name, agency.twitter, 'twitter', function(criteria){
+   Aggregator.gatherSearchCriteria(userName, agency.name, agency.twitter, 'twitter', function(criteria){
         searchCriteria = criteria;
 
         $that.authenticate(function(success){
@@ -47,19 +50,19 @@ exports.authenticate = function(callback){
             body = JSON.parse(body);
             session.access_token = 'Bearer ' + body.access_token;
 
-            //logger.log('debug',"Authentication to Twitter was successful!");
+            //logger.log('info',"Authentication to Twitter was successful!");
             return callback(body);
         }
     });
 }
 
 exports.extractData = function(userName, agencyName, criteria){
-    logger.log('debug','Extracting data from Twitter...');
+    logger.log('info','Extracting data from Twitter...');
     var $that = this;
 
     criteria.accounts.forEach(function(account){
 
-        AggregatorController.runWithWatcher(userName, agencyName, '@' + account.name, 'twitter', account.frequency, null, function(){
+        Aggregator.runWithWatcher(userName, agencyName, '@' + account.name, 'twitter', account.frequency, null, function(){
             $that.getLastPostId('@' + account.name, function(lastPostId){
                 $that.extractProfilePosts(userName, agencyName, account.name, lastPostId, function(posts){
                     if(posts!=undefined){
@@ -71,7 +74,7 @@ exports.extractData = function(userName, agencyName, criteria){
     });
 
     criteria.tags.forEach(function(tag){
-        AggregatorController.runWithWatcher(userName, agencyName, '#' + tag.name, 'twitter', tag.frequency, null, function(){
+        Aggregator.runWithWatcher(userName, agencyName, '#' + tag.name, 'twitter', tag.frequency, null, function(){
             $that.getLastPostId('#' + tag.name, function(lastPostId){
                 $that.extractTagPosts(userName, agencyName, tag, lastPostId, function(posts){
                     if(posts!=undefined){
@@ -178,7 +181,7 @@ exports.saveProfilePosts = function(profile, posts){
     _.forEach(posts, function(postInfo){
         postsTasks.push(function(callback){
 
-            var post = new Post();
+            var post = {};
 
             post.userName = postInfo.userName;
             post.agencyName = postInfo.agencyName;
@@ -205,8 +208,7 @@ exports.saveProfilePosts = function(profile, posts){
                 }
             });
 
-            post.save();
-            callback();
+             Aggregator.savePost(post, callback);
         });
     });
 
@@ -221,7 +223,7 @@ exports.saveTagsPosts = function(tag, posts){
         tagsTasks.push(function(callback){
 
             if(postInfo.retweet_count!=undefined && postInfo.retweet_count==0){
-                var post = new Post();
+                var post = {};
                 
                 post.userName = postInfo.userName;
                 post.agencyName = postInfo.agencyName;
@@ -248,8 +250,7 @@ exports.saveTagsPosts = function(tag, posts){
                     }
                 });
                 
-                post.save();
-                callback();
+                 Aggregator.savePost(post, callback);
             }
         });
     });

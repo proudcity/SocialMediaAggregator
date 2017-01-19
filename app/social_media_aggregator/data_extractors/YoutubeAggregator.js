@@ -1,9 +1,12 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
-    AggregatorController = require('../AggregatorController'),
+    Aggregator = require('../AggregatorController'),
     _ = require('lodash'),
-    Post = require('../../model/Post');
+    Post = require(__base + 'model/Post');
 
 var session = {};
 var searchCriteria = {};
@@ -11,7 +14,7 @@ var searchCriteria = {};
 exports.aggregateData = function(userName, agency) {
     var $that = this;
 
-    AggregatorController.gatherSearchCriteria(userName, agency.name, agency.youtube, 'youtube', function(criteria){
+   Aggregator.gatherSearchCriteria(userName, agency.name, agency.youtube, 'youtube', function(criteria){
         searchCriteria = criteria;
 
         $that.extractData(userName, agency.name, criteria);
@@ -27,7 +30,7 @@ exports.extractSearchData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.tags.forEach(function(search){
-        AggregatorController.runWithWatcher(userName, agencyName, '#' + search.name, 'youtube', search.frequency, null, function(){
+        Aggregator.runWithWatcher(userName, agencyName, '#' + search.name, 'youtube', search.frequency, null, function(){
             logger.log('info', 'Extracting data from Youtube search %s', search.name);
             $that.encodeSearchCriteria(search.name, function(criteria){
                 $that.getLastPostTime(criteria, function(lastPostTime){
@@ -48,6 +51,13 @@ exports.extractSearchData = function(userName, agencyName, criteria){
                             async.parallel(videosTasks, function(){
                             });
                         }
+                        else {
+                            logger.log( 
+                                'error', 
+                                'Youtube no search results: %s, agencyName: %s, tag: %s', 
+                                userName, agencyName, search.name
+                            );
+                        }
                     });
                 });
             });
@@ -59,7 +69,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(channel){
-        AggregatorController.runWithWatcher(userName, agencyName, '@' + channel.name, 'youtube', channel.frequency, null, function(){
+        Aggregator.runWithWatcher(userName, agencyName, '@' + channel.name, 'youtube', channel.frequency, null, function(){
             logger.log('info', 'Extracting data from Youtube channel %s', channel.name);
             $that.getChannel(channel.name, function(channelsResult){
                 if(channelsResult!=undefined){
@@ -99,6 +109,13 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
                             async.parallel(videosTasks, function(){
                             });
                         }
+                        else {
+                            logger.log( 
+                                'error', 
+                                'Youtube no playlist results: %s, agencyName: %s, tag: %s', 
+                                userName, agencyName, search.name
+                            );
+                        }
                     });
                 }
             });
@@ -107,7 +124,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
 }
 
 exports.getChannel = function(channel, callback){
-    logger.log('debug', 'Extracting data from Youtube channel %s', channel);
+    logger.log('info', 'Extracting data from Youtube channel %s', channel);
     request({
         url: 'https://www.googleapis.com/youtube/v3/channels?forUsername=' + channel + '&part=contentDetails&key=' + process.env.GOOGLE_SECRET,
         method: 'GET'
@@ -182,7 +199,7 @@ exports.getLastPostTime = function(match, callback){
 }
 
 exports.getSearchResults = function(userName, agencyName, searchCriteria, lastPostTime, callback){
-    logger.log('debug', 'Extracting data from Youtube search %s', searchCriteria);
+    logger.log('info', 'Extracting data from Youtube search %s', searchCriteria);
     var url = 'https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=' + searchCriteria + '&type=video&key=' + process.env.GOOGLE_SECRET;
     url += lastPostTime!=undefined ? "&publishedAfter=" + lastPostTime : "";
     url += "&maxResults=" + config.app.postsLimit;
@@ -202,7 +219,7 @@ exports.getSearchResults = function(userName, agencyName, searchCriteria, lastPo
 }
 
 exports.savePost = function(userName, agencyName, videoInfo, callback){
-    var post = new Post();
+    var post = {};
     videoInfo = videoInfo[0];
 
     post.userName = userName;
@@ -219,7 +236,6 @@ exports.savePost = function(userName, agencyName, videoInfo, callback){
     post.image = _.get(videoInfo, 'snippet.thumbnails.medium.url') || _.get(videoInfo, 'snippet.thumbnails.default.url');
     post.icon = '';
 
-    post.save();
-    callback();
+    Aggregator.savePost(post, callback);
 }
 

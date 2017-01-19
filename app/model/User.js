@@ -1,9 +1,9 @@
 var mongoose = require('mongoose'),
     random = require('mongoose-simple-random'),
-    config = require('../config/config.js'),
+    config = require(__base + 'config/config.js'),
     Post = require('./Post'),
+    Watcher = require('./Watcher'),
     UserDetailsProvider = require('./UserDetailsProvider'),
-    AggregatorController = require('../social_media_aggregator/AggregatorController'),
     _ = require("lodash");
 
 var ObjectId = mongoose.Schema.ObjectId;
@@ -132,16 +132,16 @@ var UserSchema = new mongoose.Schema({
 
 UserSchema.index({ geometry: 'Polygon' });
 
-UserSchema.static('allUsers', function(callback) {
+UserSchema.statics.allUsers = function(callback) {
     this.find().exec(function (err, users) {
         if(err) {
             return callback(err);
         }
         return users ? callback(undefined, users) : callback(undefined, undefined);
     });
-});
+};
 
-UserSchema.static('findUser', function(name, callback){
+UserSchema.statics.findUser = function(name, callback){
     this.findOne({
         name: name
     }).exec(function (err, user) {
@@ -150,10 +150,10 @@ UserSchema.static('findUser', function(name, callback){
         }
         return user ? callback(undefined, user) : callback(undefined, undefined);
     });
-});
+};
 
 
-UserSchema.static('findUserById', function(id, callback){
+UserSchema.statics.findUserById = function(id, callback){
     this.findOne({
         _id: id
     }).exec(function (err, user) {
@@ -162,10 +162,10 @@ UserSchema.static('findUserById', function(id, callback){
         }
         return user ? callback(undefined, user) : callback(undefined, undefined);
     });
-});
+};
 
 // Helper populates agency data
-UserSchema.static('agencyPopulate', function(agencyData) {
+UserSchema.statics.agencyPopulate = function(agencyData) {
     var agency = new AgencySchema();
     agency.name = agencyData.name ? agencyData.name : 'default';
     agency.facebook = agencyData.facebook;
@@ -176,13 +176,13 @@ UserSchema.static('agencyPopulate', function(agencyData) {
     agency.socrata = agencyData.socrata;
     agency.foursquare = agencyData.foursquare;
     return agency;
-});
+};
 
 // Updates user agencies
 // adds new if present
 // updates otherwise
 // deleteMode = true deletes mode
-UserSchema.static('updateAgencies', function(userName, agencies, callback, deleteMode) {
+UserSchema.statics.updateAgencies = function(userName, agencies, callback, deleteMode) {
     var $that = this;
     // Check if user already exists
     this.findUser(userName, function(findErr, user) {
@@ -209,7 +209,7 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
                         if(deleteMode && _.size(agency) === 1) {
                             user.agencies[userAgencyKey].remove();
                             // remove watchers
-                            AggregatorController.clearWatcherInterval({
+                            Watcher.clearInterval({
                                 userName: userName, 
                                 agencyName: agency.name
                             });
@@ -252,7 +252,7 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
                                             match: entry.type == 'account' ? '@' + entry.query : '#' + entry.query
                                         };
                                         // remove watchers
-                                        AggregatorController.clearWatcherInterval(criteria);
+                                        Watcher.clearInterval(criteria);
                                         // delete posts
                                         Post.deleteByCrtiteria(criteria);
                                     });
@@ -311,9 +311,9 @@ UserSchema.static('updateAgencies', function(userName, agencies, callback, delet
             });
         }
     })
-});
+};
 
-UserSchema.static('createUser', function(data, NewUser, callback) {
+UserSchema.statics.createUser = function(data, NewUser, callback) {
     var $that = this;
     // Check if user already exists
     this.findUser(data.name, function(findErr, user) {
@@ -357,9 +357,9 @@ UserSchema.static('createUser', function(data, NewUser, callback) {
         }
 
     });
-});
+};
 
-UserSchema.static('delete', function(userName, agencies, callback) {
+UserSchema.statics.delete = function(userName, agencies, callback) {
     var $that = this;
     // Check if user already exists
     this.findUser(userName, function(findErr, user) {
@@ -381,7 +381,7 @@ UserSchema.static('delete', function(userName, agencies, callback) {
                     if(_.includes(agencies, agency.name)) {
                         user.agencies[key].remove();
                         // remove watchers
-                        AggregatorController.clearWatcherInterval({
+                        Watcher.clearInterval({
                             userName: userName, 
                             agencyName: agency.name
                         });
@@ -407,7 +407,7 @@ UserSchema.static('delete', function(userName, agencies, callback) {
                     }
                     else {
                         // remove watchers
-                        AggregatorController.clearWatcherInterval({
+                        Watcher.clearInterval({
                             userName: userName
                         });
                         // remove posts
@@ -419,7 +419,6 @@ UserSchema.static('delete', function(userName, agencies, callback) {
                     
         }
     });
-});
-
+};
 
 module.exports = mongoose.model('User', UserSchema);

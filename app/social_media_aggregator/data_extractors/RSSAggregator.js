@@ -1,7 +1,9 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post'),
+    Aggregator = require('../AggregatorController'),
     _ = require('lodash'),
     fs = require('fs');
 
@@ -11,7 +13,7 @@ var FeedParser = require('feedparser')
 exports.aggregateData = function(user, agency) {
     var $that = this;
 
-    AggregatorController.runWithWatcher(user.name, agency.name, agency.name, 'rss', agency.rss.frequency, null, function(){
+   Aggregator.runWithWatcher(user.name, agency.name, agency.name, 'rss', agency.rss.frequency, null, function(){
         $that.extractData(user, agency);
     });
 
@@ -64,7 +66,7 @@ exports.extractRSSPosts = function(url, agencyName, userName, match){
 exports.savePost = function(postInfo, userName, agencyName, match){
 
     if(postInfo!=undefined){
-        var post = new Post();
+        var post = {};
 
         post.userName = userName;
         post.agencyName = agencyName;
@@ -81,6 +83,6 @@ exports.savePost = function(postInfo, userName, agencyName, match){
 
         post.url = postInfo.link;
         post.icon = '';
-        post.save();
+         Aggregator.savePost(post);
     }
 }

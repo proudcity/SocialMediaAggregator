@@ -1,8 +1,10 @@
-var express = require('express'),
+"use strict";
+
+var config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     request = require('request'),
     async = require('async'),
-    AggregatorController = require('../AggregatorController'),
-    Post = require('../../model/Post'),
+    Aggregator = require('../AggregatorController'),
     uuid = require('node-uuid'),
     OAuth = require('oauth').OAuth;
 
@@ -10,7 +12,7 @@ exports.aggregateData = function(user, agency) {
     var $that = this;
 
     $that.config(function(oauth){
-        AggregatorController.runWithTimeout(agency.yelp.frequency, null, function(){
+        Aggregator.runWithTimeout(agency.yelp.frequency, null, function(){
             $that.extractData(user, agency, oauth);
         });
     });
@@ -78,7 +80,7 @@ exports.savePosts = function(userName, agencyName, match, posts, callback){
 
         posts.forEach(function(postInfo){
             postsTasks.push(function(callback){
-                var post = new Post();
+                var post = {};
 
                 post.userName = userName;
                 post.agencyName = agencyName;
@@ -103,9 +105,7 @@ exports.savePosts = function(userName, agencyName, match, posts, callback){
                     }
                 }
 
-                post.save();
-
-                callback();
+                 Aggregator.savePost(post, callback);
             });
         });
 
