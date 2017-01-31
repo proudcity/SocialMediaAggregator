@@ -4,7 +4,7 @@ node {
   //sh("./etc-kube/build.sh ${env.SUBDOMAIN}")
 
   def project = 'proudcity-1184'
-  def appName = 'SocialMediaAggregator'
+  def appName = 'social-aggregator'
   //def feSvcName = "${appName}-frontend"
   def imageTag = "gcr.io/${project}/${appName}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
 
