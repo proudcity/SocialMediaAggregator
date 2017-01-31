@@ -1,10 +1,13 @@
 var _ = require('lodash');
 
-var port =  _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR') ? 80 : 8084;
+var port =  _.has(process, 'env.PORT') ? parseInt(process.env.PORT) : 
+    _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR') ? 80 : 8084;
 
 module.exports = {
     "port": port,
-    "db": _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR')
+    "db": _.has(process, 'env.DB_CONNECTION')
+        ? process.env.DB_CONNECTION : 
+        _.has(process, 'env.MONGO_PORT_27017_TCP_ADDR')
         ? "mongodb://" + process.env.MONGO_PORT_27017_TCP_ADDR + ":"
     + process.env.MONGO_PORT_27017_TCP_PORT + "/socialmediaaggregator"
         : "mongodb://localhost:27017/socialmediaaggregator",
