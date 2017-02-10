@@ -37,7 +37,7 @@ exports.startExecution = function(){
 // Runs execution on a interval
 exports.runWithTimeout = function(timeout, authenticate, execute){
     // Timeout
-    timeout || config.app.frequency;
+    timeout = timeout || config.app.frequency;
     timeout = timeout * 1000;
     // Deal with artbitrary node timeout limit
     if(timeout > 2000000000) {
@@ -216,11 +216,11 @@ exports.savePost = function(post, callback) {
     let toSave = _.assignIn(new Post(), post);
     toSave.save().then(
         (newPost) => {
-            logger.log(
-                'info', 
-                'Saved _id: %s, name: %s, agency: %s, service: %s', 
-                newPost._id, post.userName, post.agencyName, post.service
-            );
+            // logger.log(
+            //     'info', 
+            //     'Saved _id: %s, name: %s, agency: %s, service: %s', 
+            //     newPost._id, post.userName, post.agencyName, post.service
+            // );
             callback();
         }
     )

@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
     random = require('mongoose-simple-random'),
     config = require(__base + 'config/config.js'),
+    logger = require(__base + 'config/logger'),
     Post = require('./Post'),
     Watcher = require('./Watcher'),
     UserDetailsProvider = require('./UserDetailsProvider'),

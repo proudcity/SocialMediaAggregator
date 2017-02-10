@@ -386,18 +386,18 @@ exports.handleError = function(errCode, errMessage, nextAction){
 
         // OAuthException
         case 191:
-            logger.log('info',"Error %s occurred: %s",errCode, errMessage);
+            logger.log('error',"Error %s occurred: %s",errCode, errMessage);
             break;
        
 
         // Bad search key
         case 803:
-            logger.log('info', errMessage);
+            logger.log('error', errMessage);
             break;
        
 
         default:
-            logger.log('info',"Failed to handle error %s: %s", errCode, errMessage);
+            logger.log('error',"Failed to handle error %s: %s", errCode, errMessage);
     }
 }
 

@@ -1,5 +1,6 @@
 var express = require('express'),
     request = require('request'),
+    logger = require(__base + 'config/logger'),
     User = require(__base + 'model/User'),
     config = require(__base + 'config/config.js'),
     async = require('async'),
@@ -18,7 +19,7 @@ router.route('/create')
             var NewUser = new User();
             User.createUser(payload, NewUser, function(createError, user) {
                 if(createError) {
-                    console.log(createError);
+                    logger.log('error', 'Create user error', createError);
                     res.status(500).json({ error: 'message' });
                 }
                 else {

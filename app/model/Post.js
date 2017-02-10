@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
     random = require('mongoose-simple-random'),
     config = require(__base + 'config/config'),
+    logger = require(__base + 'config/logger'),
     moment = require('moment-timezone');
 
 var ObjectId = mongoose.Schema.ObjectId;

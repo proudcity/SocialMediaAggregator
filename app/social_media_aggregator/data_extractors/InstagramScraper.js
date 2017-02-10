@@ -2,6 +2,8 @@ var request = require('request');
 var path    = require('path');
 var qs      = require('querystring');
 var url     = require('url');
+var config = require(__base + 'config/config');
+var logger = require(__base + 'config/logger');
 
 module.exports = function(username, minId, callback) {
   return new Scraper(username).crawl(minId, callback);
@@ -30,8 +32,14 @@ Scraper.prototype.crawl = function(minId, callback) {
       } else if(!response) {
         return callback('No response');
       } else {
-          body = JSON.parse(body);
-          return body.items!=undefined && body.items.length!=0 ? callback(null, body.items) : callback('No items');
+        try {
+           body = JSON.parse(body);
+        }
+        catch (e) {
+          // statements to handle any exceptions
+          logger.log('error', 'Instragram scraping malformed json: %s', url, e );
+        }
+        return body.items!=undefined && body.items.length!=0 ? callback(null, body.items) : callback('No items');
       }
   });
 }

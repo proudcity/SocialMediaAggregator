@@ -15,4 +15,4 @@ RUN npm install
 EXPOSE 443
 EXPOSE 80
 
-CMD forever -l /src/logs/server.log -o /src/logs/out.log -e /src/logs/err.log /src/app.js
+CMD forever -a -l /src/logs/server.log -o /src/logs/out.log -e /src/logs/err.log /src/app.js

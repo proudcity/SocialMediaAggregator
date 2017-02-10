@@ -69,6 +69,8 @@ WatcherSchema.statics.clearInterval = function(criteria, callback) {
             callback(err);
         }
         _.map(watchers, function(watcher) {
+            console.log(watcher);
+            console.log(processIntervals[watcher['_id']]);
             clearInterval(processIntervals[watcher['_id']]);
             watcher.remove();
         });
