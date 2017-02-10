@@ -30,7 +30,7 @@ ENV PATH=/opt/bitnami/node/bin:/opt/bitnami/python/bin:$PATH \
 ## STACKSMITH-END: Modifications below this line will be unchanged when regenerating
 
 # ExpressJS template
-COPY . /app
+COPY ./app /app
 WORKDIR /app
 
 #RUN rm /app/.env
