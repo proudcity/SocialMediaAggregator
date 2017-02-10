@@ -42,4 +42,5 @@ RUN npm install -g forever
 RUN npm install
 
 EXPOSE 3000
-CMD ["forever", "app.js"]
+
+CMD forever -l /app/logs/server.log -o /app/logs/out.log -e /app/logs/err.log /app/app.js
