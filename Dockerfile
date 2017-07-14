@@ -1,9 +1,9 @@
 ## BUILDING
 ##   (from project root directory)
-##   $ docker build -t node-js-6-9-5-on-minideb .
+##   $ docker build -t node-js-6-11-1-on-minideb .
 ##
 ## RUNNING
-##   $ docker run -p 3000:3000 node-js-6-9-5-on-minideb
+##   $ docker run -p 3000:3000 node-js-6-11-1-on-minideb
 ##
 ## CONNECTING
 ##   Lookup the IP of your active docker host using:
@@ -11,18 +11,18 @@
 ##   Connect to the container at DOCKER_IP:3000
 ##     replacing DOCKER_IP for the IP of your active docker host
 
-FROM gcr.io/stacksmith-images/minideb-buildpack:jessie-r9
+FROM gcr.io/bitnami-containers/minideb-extras:jessie-r14-buildpack
 
 MAINTAINER Bitnami <containers@bitnami.com>
 
-ENV STACKSMITH_STACK_ID="o82rz4d" \
-    STACKSMITH_STACK_NAME="Node.js 6.9.5 on minideb" \
+ENV STACKSMITH_STACK_ID="n34aso9" \
+    STACKSMITH_STACK_NAME="Node.js 6.11.1 on minideb" \
     STACKSMITH_STACK_PRIVATE="1"
 
 # Install required system packages
-RUN install_packages libc6 libssl1.0.0 libncurses5 libtinfo5 zlib1g libbz2-1.0 libreadline6 libstdc++6 libgcc1 ghostscript imagemagick libmysqlclient18
+RUN install_packages libc6 libssl1.0.0 libncurses5 libtinfo5 libsqlite3-0 zlib1g libbz2-1.0 libreadline6 libstdc++6 libgcc1 ghostscript imagemagick libmysqlclient18
 
-RUN bitnami-pkg install node-6.9.5-0 --checksum a0ea55e9a34d38099a310500f708ebb3712f7fae41a83deaffb9c4b655684531
+RUN bitnami-pkg install node-6.11.1-0 --checksum 30c14d5d23328aafdfe6d63a8956a8cca4eb6bf4f13cbdc6a080a05731b614c1
 
 ENV PATH=/opt/bitnami/node/bin:/opt/bitnami/python/bin:$PATH \
     NODE_PATH=/opt/bitnami/node/lib/node_modules
