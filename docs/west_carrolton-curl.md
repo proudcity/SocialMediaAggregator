@@ -1,41 +1,12 @@
 curl -u proudCity -X GET -H "Content-Type: application/json" 'http://feeds.proudcity.com:8084/user/Huntsville,_Alabama/aggregate'
 
-curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
+curl -u proudCity -X POST -H "Content-Type: application/json" -d 'http://localhost:8084/user/aggregate' '{
     "type": "city",
-    "name": "Huntsville,_Alabama",
-    "label": "Huntsville, Alabama",
-    "geojsonUrl": "",
+    "name": "San_Ramon,_California",
     "agencies": [
         {
             "name": "local",
-            "youtube": {
-                "frequency": 900,
-                "feeds": [
-                    {
-                        "type": "account",
-                        "query": "nycgov"
-                    }
-                ]
-            },
-            "twitter": {
-                "frequency": 900,
-                "feeds": [
-                    {
-                        "type": "account",
-                        "query": "nycgov"
-                    }
-                ]
-            },
             "instagram": {
-                "frequency": 900,
-                "feeds": [
-                    {
-                        "type": "account",
-                        "query": "nycgov"
-                    }
-                ]
-            },
-            "facebook": {
                 "frequency": 900,
                 "feeds": [
                     {
@@ -46,7 +17,10 @@ curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
             }
         }
     ]
-}' 'http://feeds.proudcity.com:8084/user/create'
+}' 
+
+curl -u proudCity -X GET -H "Content-Type: application/json" 'http://localhost:8084/user/San_Ramon,_California/aggregate'
+
 
 curl -u proudCity -X POST -H "Content-Type: application/json" -d '{
     "name": "West_Carrollton,_Ohio"
