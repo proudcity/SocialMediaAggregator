@@ -3,21 +3,33 @@ node {
   //sh("source ./etc-kube/globals.sh")
   //sh("./etc-kube/build.sh ${env.SUBDOMAIN}")
 
-  def project = 'proudcity-1184'
-  def appName = 'social-aggregator'
-  //def feSvcName = "${appName}-frontend"
-  def imageTag = "gcr.io/${project}/${appName}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
 
-  checkout scm
+  try {
+      slackSend (color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
 
-  stage 'Build image'
-  sh("docker build -t ${imageTag} .")
+      def project = 'proudcity-1184'
+      def appName = 'social-aggregator'
+      //def feSvcName = "${appName}-frontend"
+      def imageTag = "gcr.io/${project}/${appName}:${env.BRANCH_NAME}.${env.BUILD_NUMBER}"
 
-  //stage 'Run Go tests'
-  //sh("docker run ${imageTag} go test")
+      checkout scm
 
-  stage 'Push image to registry'
-  sh("gcloud docker push ${imageTag}")
+      stage 'Build image'
+      sh("docker build -t ${imageTag} .")
+
+      //stage 'Run Go tests'
+      //sh("docker run ${imageTag} go test")
+
+      stage 'Push image to registry'
+      sh("gcloud docker -- push ${imageTag}")
+
+      slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+
+  } catch (e) {
+    currentBuild.result = "FAILED"
+    slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    throw e
+  }
 
   /*
   stage "Deploy Application"
