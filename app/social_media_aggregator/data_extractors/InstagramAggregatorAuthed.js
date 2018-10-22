@@ -41,7 +41,6 @@ exports.ensureAuthenticated = function(callback){
                 let instagram_auth = require(path);
                 if(instagram_auth && instagram_auth.access_token) {
                     config.apps.instagram.access_token = instagram_auth.access_token;
-                    console.log(config.apps.instagram.access_token);
                     return callback(true);
                 }
             }
@@ -57,7 +56,7 @@ exports.extractData = function(userName, agencyName, criteria){
 
     criteria.accounts.forEach(function(profile){
         Aggregator.runWithWatcher(userName, agencyName, '@' + profile.name, 'instagram', profile.frequency, null, function(){
-            logger.log('info', 'Extracting data from Instagram profile %s', profile.name);
+            logger.log('info', 'Extracting data from Instagram profile %s, user: %s, agency: %s', profile.name, userName, agencyName);
             $that.getProfileId(profile.name, function(profileid){
                 if(profileid!=undefined){
                     $that.getLastPostId('@' + profile.name, function(lastPostId){
@@ -79,7 +78,7 @@ exports.extractData = function(userName, agencyName, criteria){
 
     criteria.tags.forEach(function(tag){
         Aggregator.runWithWatcher(userName, agencyName, '#' + tag.name, 'instagram', tag.frequency, null, function(){
-            logger.log('info', 'Extracting data from Instagram tag %s', tag.name);
+            logger.log('info', 'Extracting data from Instagram tag %s, user: %s, agency: %s', tag.name, userName, agencyName);
             $that.getLastPostId('#' + tag.name, function(lastPostId){
                 $that.extractTagPosts(tag.name, lastPostId, function(posts){
                     if(posts!=undefined){
@@ -107,7 +106,7 @@ exports.getProfileId = function(profile, callback){
             return callback(undefined);
         }
         else {
-            console.log(body);
+            logger.log('info', 'Instagram getProfileId', body);
             body = JSON.parse(body);
             return body.data!=undefined && body.data.length!=0 ? callback(body.data[0].id) : callback(undefined);
         }
@@ -151,8 +150,7 @@ exports.extractTagPosts = function(tag, lastPostId, callback){
         method: 'GET'
     }, function(error, response, body) {
         if(error || !body || !response) {
-            console.log('error');
-            console.log(error);
+            logger.log('error', 'Instagram extract tags failed', error);
             return callback(undefined);
         }
         else {

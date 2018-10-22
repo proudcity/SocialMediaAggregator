@@ -57,7 +57,6 @@ exports.authenticate = function(callback){
 }
 
 exports.extractData = function(userName, agencyName, criteria){
-    logger.log('info','Extracting data from Twitter...');
     var $that = this;
 
     criteria.accounts.forEach(function(account){
@@ -94,7 +93,7 @@ exports.getLastPostId = function(match, callback){
 }
 
 exports.extractTagPosts = function(userName, agencyName, tag, lastPostId, callback){
-    logger.log('info', "Extracting data from Twitter tag %s", tag);
+    logger.log('info', "Extracting data from Twitter tag %s, user: %s, agency: %s", tag, userName, agencyName);
 
     var url = 'https://api.twitter.com/1.1/search/tweets.json?q=%23' + tag;
     url += lastPostId!=undefined ? "&since_id=" + lastPostId : "";
@@ -127,7 +126,7 @@ exports.extractTagPosts = function(userName, agencyName, tag, lastPostId, callba
 }
 
 exports.extractProfilePosts = function(userName, agencyName, profile, lastPostId, callback){
-    logger.log('info',  "Extracting data from Twitter profile %s", profile);
+    logger.log('info',  "Extracting data from Twitter profile %s, user: %s, agency: %s", profile, userName, agencyName);
 
     var url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=' + profile;
     url += lastPostId!=undefined ? "&since_id=" + lastPostId : "";

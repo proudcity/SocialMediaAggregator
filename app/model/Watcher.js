@@ -8,7 +8,9 @@ var WatcherSchema = new mongoose.Schema({
     userName: String,
     agencyName: String,
     service: String,
-    match: String
+    match: String,
+    lastRun: Date,
+    nextRun: Date
 }, {
     collection: 'sma_procwatcher'
 });
@@ -69,8 +71,6 @@ WatcherSchema.statics.clearInterval = function(criteria, callback) {
             callback(err);
         }
         _.map(watchers, function(watcher) {
-            console.log(watcher);
-            console.log(processIntervals[watcher['_id']]);
             clearInterval(processIntervals[watcher['_id']]);
             watcher.remove();
         });
@@ -83,7 +83,6 @@ WatcherSchema.statics.resetAll = function(callback){
         if(err) {
             return callback(err);
         }
-        console.log('deleted');
         return callback(undefined);
     });
 };

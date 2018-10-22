@@ -84,7 +84,7 @@ exports.extractData = function(userName, agencyName, criteria){
 }
 
 exports.extractProfilePosts = function(userName, agencyName, profile, callback){
-    logger.log('info',"Extracting data from Facebook profile %s", profile);
+    logger.log('info',"Extracting data from Facebook profile %s, user: %s, agency: %s", profile, userName, agencyName);
 
     var $that = this;
 
@@ -341,6 +341,11 @@ exports.savePost = function(postInfo, callback) {
     post.text = postInfo.message;
     post.likes = postInfo.likes;
     post.image = postInfo.full_picture || postInfo.picture;
+
+    // Stop empty items from being added
+    if (!post.image && !post.text) {
+        return;
+    }
 
     Aggregator.savePost(post, callback);
 }

@@ -12,7 +12,8 @@ exports.aggregateData = function(user, agency) {
     var $that = this;
 
     $that.config(function(oauth){
-        Aggregator.runWithTimeout(agency.yelp.frequency, null, function(){
+        // @TODO should be runWithWatcher
+        Aggregator.runWithInterval(agency.yelp.frequency, 'yelp', function(){
             $that.extractData(user, agency, oauth);
         });
     });

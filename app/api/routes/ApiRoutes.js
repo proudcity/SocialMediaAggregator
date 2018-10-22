@@ -2,6 +2,7 @@ var express = require('express'),
     request = require('request'),
     User    = require(__base + 'model/User'),
     Post    = require(__base + 'model/Post'),
+    Watcher = require(__base + 'model/Watcher'),
     config  = require(__base + 'config/config.js'),
     async   = require('async'),
     fs      = require('fs'),
@@ -23,6 +24,19 @@ router.route('/info')
         });
     });
 
+router.route('/watchers')
+    .get(function(req, res) {
+        // Check if user already exists
+        Watcher.getWatcherSet({}, function(findErr, watchers) {
+            if(findErr) {
+                res.status(500).json(findErr);
+            }
+            else {
+                res.json(watchers);
+            }
+        });
+    });
+
 router.route('/:user/info')
     .get(function(req, res) {
         // Check if user already exists
@@ -32,6 +46,19 @@ router.route('/:user/info')
             }
             else {
                 res.json(user);
+            }
+        });
+    });
+
+router.route('/:user/watchers')
+    .get(function(req, res) {
+        // Check if user already exists
+        Watcher.getWatcherSet({ userName: _.get(req, 'params.user') }, function(findErr, watchers) {
+            if(findErr) {
+                res.status(500).json(findErr);
+            }
+            else {
+                res.json(watchers);
             }
         });
     });

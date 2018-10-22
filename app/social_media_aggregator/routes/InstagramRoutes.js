@@ -23,13 +23,13 @@ router.get('/authcallback', function(req, res) {
         logger.log('info', 'Authentication to Instagram was successful!');
 
         if (err) {
-            console.log(err.body);
+            logger.log('error', 'Instagram auth callback failed', err);
         } else {
             config.apps.instagram.access_token = result.access_token;
 
             fs.writeFile(__base + "config/instagram-config.js", "module.exports = " + JSON.stringify({access_token: result.access_token}, null, 4), function(err) {
                 if(err) {
-                    return logger.log('info', err);
+                    return logger.log('error', 'Failed to write file', err);
                 }
             });
         }

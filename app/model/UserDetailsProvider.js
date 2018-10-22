@@ -19,7 +19,7 @@ var express = require('express'),
     });
 }
 
-exports.getLatLng = function(user, callback){
+exports.getLatLng = function(user, callback) {
     if((user)){
         var url = "https://maps.googleapis.com/maps/api/place/textsearch/json?";
 

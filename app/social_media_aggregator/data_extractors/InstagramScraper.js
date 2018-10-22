@@ -23,7 +23,7 @@ Scraper.prototype.crawl = function(minId, callback) {
   if(minId) {
     url += '?' + qs.stringify({min_id: minId});
   }
-  console.log(url);
+  logger.log('info', 'Instagram crawler url: %s', url);
   request({
       url: url,
       method: 'GET'

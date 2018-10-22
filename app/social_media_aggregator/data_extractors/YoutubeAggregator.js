@@ -31,7 +31,7 @@ exports.extractSearchData = function(userName, agencyName, criteria){
 
     criteria.tags.forEach(function(search){
         Aggregator.runWithWatcher(userName, agencyName, '#' + search.name, 'youtube', search.frequency, null, function(){
-            logger.log('info', 'Extracting data from Youtube search %s', search.name);
+            logger.log('info', 'Extracting data from Youtube search %s, user: %s, agency: %s', search.name, userName, agencyName);
             $that.encodeSearchCriteria(search.name, function(criteria){
                 $that.getLastPostTime(criteria, function(lastPostTime){
                     $that.getSearchResults(userName, agencyName, criteria, lastPostTime, function(searchResults){
@@ -70,7 +70,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
 
     criteria.accounts.forEach(function(channel){
         Aggregator.runWithWatcher(userName, agencyName, '@' + channel.name, 'youtube', channel.frequency, null, function(){
-            logger.log('info', 'Extracting data from Youtube channel %s', channel.name);
+            logger.log('info', 'Extracting data from Youtube channel %s, user: %s, agency: %s', channel.name, userName, agencyName);
             $that.getChannel(channel.name, function(channelsResult){
                 if(channelsResult!=undefined){
                     // var playlistIds = [
@@ -199,7 +199,7 @@ exports.getLastPostTime = function(match, callback){
 }
 
 exports.getSearchResults = function(userName, agencyName, searchCriteria, lastPostTime, callback){
-    logger.log('info', 'Extracting data from Youtube search %s', searchCriteria);
+    logger.log('info', 'Extracting data from Youtube search %s, user: %s, agency: %s', searchCriteria, userName, agencyName);
     var url = 'https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=' + searchCriteria + '&type=video&key=' + process.env.GOOGLE_SECRET;
     url += lastPostTime!=undefined ? "&publishedAfter=" + lastPostTime : "";
     url += "&maxResults=" + config.app.postsLimit;
