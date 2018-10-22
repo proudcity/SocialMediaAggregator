@@ -1,46 +1,38 @@
-## BUILDING
-##   (from project root directory)
-##   $ docker build -t node-js-6-11-1-on-minideb .
-##
-## RUNNING
-##   $ docker run -p 3000:3000 node-js-6-11-1-on-minideb
-##
-## CONNECTING
-##   Lookup the IP of your active docker host using:
-##     $ docker-machine ip $(docker-machine active)
-##   Connect to the container at DOCKER_IP:3000
-##     replacing DOCKER_IP for the IP of your active docker host
+# This Dockerfile uses the stock node container for Node.js, release 8.X (latest)
 
-FROM gcr.io/bitnami-containers/minideb-extras:jessie-r14-buildpack
+FROM node:8
 
-MAINTAINER Bitnami <containers@bitnami.com>
+# install ssh for npm git and phantom dep
+RUN apt-get update && apt-get -y install ssh libfontconfig libfreetype6 vim \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-ENV STACKSMITH_STACK_ID="n34aso9" \
-    STACKSMITH_STACK_NAME="Node.js 6.11.1 on minideb" \
-    STACKSMITH_STACK_PRIVATE="1"
+# https://github.com/nodejs/docker-node/issues/479#issuecomment-319446283
+# and https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#global-npm-dependencies
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+# optionally if you want to run npm global bin without specifying path
+ENV PATH=$PATH:/home/node/.npm-global/bin
+ENV NODE_ENV="production"
 
-# Install required system packages
-RUN install_packages libc6 libssl1.0.0 libncurses5 libtinfo5 libsqlite3-0 zlib1g libbz2-1.0 libreadline6 libstdc++6 libgcc1 ghostscript imagemagick libmysqlclient18
-
-RUN bitnami-pkg install node-6.11.1-0 --checksum 30c14d5d23328aafdfe6d63a8956a8cca4eb6bf4f13cbdc6a080a05731b614c1
-
-ENV PATH=/opt/bitnami/node/bin:/opt/bitnami/python/bin:$PATH \
-    NODE_PATH=/opt/bitnami/node/lib/node_modules
-
-## STACKSMITH-END: Modifications below this line will be unchanged when regenerating
-
-# ExpressJS template
-COPY ./app /app
-WORKDIR /app
-
-#RUN rm /app/.env
-
-# Other packages
-RUN apt-get update && apt-get install -y vim
+# allow node user to bind to port 80 https://gist.github.com/firstdoit/6389682
+RUN setcap 'cap_net_bind_service=+ep' `which node`
 
 RUN npm install -g forever
+
+# Copy app's source code to the /app directory
+COPY ./app /home/node/app
+
+# The application's directory will be the working directory
+WORKDIR /home/node/app
+
+# Install Node.js dependencies defined in '/app/packages.json'
 RUN npm install
 
-EXPOSE 3000
+# EXPOSE 3000
 
-CMD forever -l /app/logs/server.log -o /app/logs/out.log -e /app/logs/err.log /app/app.js
+RUN chown -R node:node ./logs
+
+USER node
+
+# Start the application
+CMD forever -l ./logs/server.log -o ./logs/out.log -e ./logs/err.log app.js

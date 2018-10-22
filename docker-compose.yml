@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  feeds:
+    build: ./
+    # image: gcr.io/proudcity-1184/pa11y-webservice:0.1.5
+    volumes:
+      - ./app:/home/node/app
+    ports:
+      - 8084:80
+    networks:
+      - default
+    depends_on:
+      - mongo
+    environment:
+      PORT: 80
+      DB_CONNECTION: "mongodb://mongo:27017/socialmediaaggregator"
+      
+  mongo:
+    image: mongo:3
+    ports:
+      - "27015:27017"
+    networks:
+      - default
+
+networks:
+  default:
