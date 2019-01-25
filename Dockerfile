@@ -1,9 +1,9 @@
 # This Dockerfile uses the stock node container for Node.js, release 8.X (latest)
 
-FROM node:8
+FROM node:8.15
 
 # install ssh for npm git and phantom dep
-RUN apt-get update && apt-get -y install ssh libfontconfig libfreetype6 vim \
+RUN apt-get update && apt-get -y install ssh libfontconfig libfreetype6 vim libcap2-bin \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
