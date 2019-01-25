@@ -92,21 +92,22 @@ exports.extractProfilePosts = function(userName, agencyName, profile, callback){
 
         $that.extractPostsInfo(userName, agencyName, profile, lastPostTime, function(){
 
+            // @TODO commenting this out to restrict API limit hitting
             var asyncTasks = [];
 
             extractedPosts.forEach(function(post){
 
                 asyncTasks.push(function(callback){
 
-                    $that.extractPostsLikes(post, function(post){
+            //         $that.extractPostsLikes(post, function(post){
 
-                        $that.extractPostLocation(post, function(post){
+            //             $that.extractPostLocation(post, function(post){
 
                             $that.savePost(post, callback);
 
-                        });
+            //             });
 
-                    });
+            //         });
                 });
             });
 
@@ -188,11 +189,11 @@ exports.extractPostsFromBufferedPages = function(){
 
                         asyncTasks.push(function(callback){
 
-                            $that.extractPostsLikes(post, function(post){
+                        //     $that.extractPostsLikes(post, function(post){
 
                                 $that.savePost(userName, agencyName, post, callback);
 
-                            });
+                        //     });
 
                         });
                     });
@@ -339,7 +340,7 @@ exports.savePost = function(postInfo, callback) {
     post.icon = postInfo.icon;
     post.url = postInfo.link;
     post.text = postInfo.message;
-    post.likes = postInfo.likes;
+    post.likes = postInfo.likes || 0;
     post.image = postInfo.full_picture || postInfo.picture;
 
     // Stop empty items from being added
