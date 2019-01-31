@@ -206,9 +206,11 @@ var extractDataForUser = function (user) {
       TwitterAggregator.aggregateData(user.name, agency);
     }
 
-    if (agency.instagram['feeds'].length) {
-      InstagramAggregator.aggregateData(user.name, agency);
-    }
+    // @TODO Instagram not currently working
+    // 1-30-19
+    // if (agency.instagram['feeds'].length) {
+    //   InstagramAggregator.aggregateData(user.name, agency);
+    // }
 
     if (agency.youtube['feeds'].length) {
       YoutubeAggregator.aggregateData(user.name, agency);
