@@ -24,7 +24,7 @@ var CRITERIA_TYPE = {
   ACCOUNT: 'account'
 }
 
-const TIMEOUT_VAL = 300000;
+const TIMEOUT_VAL = 100000;
 
 // Tracks currently staggered services
 // internal = count (number of that service) and values (offset in ms)
@@ -102,6 +102,8 @@ exports.runWithInterval = function (timeout, platform, run) {
   }, timeout);
 }
 
+
+
 /**
  * Runs execution based on watcher object in database
  * Will not run again if already running
@@ -119,7 +121,8 @@ exports.runWithWatcher = function (userName, agencyName, match, platform, timeou
 
   // Override timeout to just be evenly spaced
   timeout = TIMEOUT_VAL;
-  staggering[platform].value = staggering[platform].value + timeout;
+  // If we're just starting, just at 1
+  staggering[platform].value = staggering[platform].value ? staggering[platform].value + timeout : 1;
 
   setTimeout(function () {
 
@@ -330,21 +333,49 @@ exports.gatherSearchCriteria = function (userName, agencyName, queryList, platfo
  * @param func callback 
  */
 exports.savePost = function (post, callback) {
-  let toSave = _.assignIn(new Post(), post);
-  toSave.save().then(
-    (newPost) => {
-      // logger.log(
-      //     'info', 
-      //     'Saved _id: %s, name: %s, agency: %s, service: %s', 
-      //     newPost._id, post.userName, post.agencyName, post.service
-      // );
-      callback();
-    }
-  )
-    .catch(
-      (reason) => {
-        logger.log('error', reason.errmsg);
-        callback();
-      }
+  
+  let toSave;
+  try {
+    toSave = _.assignIn(new Post(), post);
+  } catch(reason) {
+    logger.log(
+      'error', 
+      'Could not create new post, reason: %s, name: %s, agency: %s, service: %s', 
+      reason.message, post.userName, post.agencyName, post.service
     );
+    callback();
+    return;
+  }
+
+  // See if already exists
+  Post.findOne({
+    "id": post.id,
+  }).then((post) => {
+    // Already exists
+    if (post) {
+      return false;
+    }
+
+    // Go ahead
+    return toSave.save();
+  }).then((newPost) => {
+    // Already exists
+    if (!newPost) {
+      // logger.log(
+      //   'info', 
+      //   'exists, name: %s, agency: %s, service: %s',
+      //   post.userName, post.agencyName, post.service
+      // );
+    }
+
+    callback();
+  }).catch((reason) => {
+    logger.log(
+      'error', 
+      'Save error, reason: %s, name: %s, agency: %s, service: %s',
+      reason.message, post.userName, post.agencyName, post.service
+    );
+    callback();
+  });
+      
 }

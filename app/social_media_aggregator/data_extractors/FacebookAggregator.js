@@ -99,6 +99,9 @@ exports.extractProfilePosts = function(userName, agencyName, profile, callback){
 
                 asyncTasks.push(function(callback){
 
+            // Removed extracting likes + other data 1/25/19
+            // for rate limit issues
+            
             //         $that.extractPostsLikes(post, function(post){
 
             //             $that.extractPostLocation(post, function(post){
@@ -188,6 +191,9 @@ exports.extractPostsFromBufferedPages = function(){
                     extractedPosts.forEach(function(post){
 
                         asyncTasks.push(function(callback){
+
+                        // Removed extracting likes + other data 1/25/19
+                        // for rate limit issues
 
                         //     $that.extractPostsLikes(post, function(post){
 

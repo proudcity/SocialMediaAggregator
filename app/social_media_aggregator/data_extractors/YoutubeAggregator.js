@@ -113,7 +113,7 @@ exports.extractChannelsData = function(userName, agencyName, criteria){
                             logger.log( 
                                 'error', 
                                 'Youtube no playlist results: %s, agencyName: %s, tag: %s', 
-                                userName, agencyName, search.name
+                                userName, agencyName, channel.name
                             );
                         }
                     });
