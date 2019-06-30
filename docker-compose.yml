@@ -8,20 +8,22 @@ services:
       - ./app:/home/node/app
     ports:
       - 8084:80
-    networks:
-      - default
-    depends_on:
-      - mongo
+#    networks:
+#      - default
+#    depends_on:
+#      - mongo
     environment:
       PORT: 80
-      DB_CONNECTION: "mongodb://mongo:27017/socialmediaaggregator"
-      
-  mongo:
-    image: mongo:3
-    ports:
-      - "27015:27017"
-    networks:
-      - default
+      DB_CONNECTION: "<use feeds dev on mlab>"
+      API_AUTH_USER: proudCity
+      API_AUTH_PASS: UM0o2aBUbtrsunGm2lvtnSFkz
 
-networks:
-  default:
+#  mongo:
+#    image: mongo:3
+#    ports:
+#      - "27015:27017"
+#    networks:
+#      - default
+
+#networks:
+#  default:
