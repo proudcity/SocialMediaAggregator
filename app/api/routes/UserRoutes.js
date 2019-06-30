@@ -20,7 +20,7 @@ router.route('/create')
             User.createUser(payload, NewUser, function(createError, user) {
                 if(createError) {
                     logger.log('error', 'Create user error', createError);
-                    res.status(500).json({ error: 'message' });
+                    res.status(500).json({ error: createError });
                 }
                 else {
                     res.json({response: 'success', user: user});
@@ -28,7 +28,7 @@ router.route('/create')
             });
         }
         else {
-            res.status(500).json({ error: 'message' });
+            res.status(500).json({ error: 'Empty payload' });
         }
 
     });
@@ -41,6 +41,7 @@ router.route('/update')
         var payload = req.body;
         if(_.has(payload, 'name')) {
             var deleteMode = payload.deleteMode ? true : false
+          console.log('payload.agencies', JSON.stringify(payload.agencies));
             User.updateAgencies(payload.name, payload.agencies, function(createError, user) {
                 if(createError) {
                     logger.log( 
@@ -48,7 +49,7 @@ router.route('/update')
                         'User update issue: %s, agencies: %s',
                         payload.name, payload.agencies.join(','), createError
                     );
-                    res.status(500).json({ error: 'message' });
+                    res.status(500).json({ error: createError });
                 }
                 else {
                     res.json({response: 'success'});
@@ -70,7 +71,7 @@ router.route('/delete')
         if(_.has(payload, 'name')) {
             User.delete(payload.name, payload.agencies, function(createError, user) {
                 if(createError) {
-                    res.status(500).json({ error: 'message' });
+                    res.status(500).json({ error: createError });
                 }
                 else {
                     res.json({response: 'success'});
@@ -78,7 +79,7 @@ router.route('/delete')
             });
         }
         else {
-            res.status(500).json({ error: 'message' });
+            res.status(500).json({ error: 'Payload empty' });
         }
     });
 
