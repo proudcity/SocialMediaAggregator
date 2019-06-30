@@ -26,7 +26,7 @@ COPY ./app /home/node/app
 WORKDIR /home/node/app
 
 # Install Node.js dependencies defined in '/app/packages.json'
-RUN npm install
+RUN npm install && node -v
 
 # EXPOSE 3000
 
