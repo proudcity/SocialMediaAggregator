@@ -211,9 +211,10 @@ var extractDataForUser = function (user) {
 
     // @TODO Instagram not currently working
     // 1-30-19
-    // if (agency.instagram['feeds'].length) {
-    //   InstagramAggregator.aggregateData(user.name, agency);
-    // }
+    if (agency.instagram['feeds'].length) {
+      console.log('agency');
+      InstagramAggregator.aggregateData(user.name, agency);
+    }
 
     if (agency.youtube['feeds'].length) {
       YoutubeAggregator.aggregateData(user.name, agency);
@@ -311,11 +312,13 @@ exports.gatherSearchCriteria = function (userName, agencyName, queryList, platfo
       if (criteriaType === CRITERIA_TYPE.HASHTAG) {
         searchCriteria.tags.push({
           "name": criteria.query,
+          "token": criteria.token,
           "frequency": criteria.frequency != undefined && criteria.frequency != "" ? criteria.frequency : queryList.frequency
         });
       } else if (criteriaType === CRITERIA_TYPE.ACCOUNT) {
         searchCriteria.accounts.push({
           "name": criteria.query,
+          "token": criteria.token,
           "frequency": criteria.frequency != undefined && criteria.frequency != "" ? criteria.frequency : queryList.frequency
         });
       }

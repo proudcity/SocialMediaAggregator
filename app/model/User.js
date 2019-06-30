@@ -12,7 +12,8 @@ var ObjectId = mongoose.Schema.ObjectId;
 var FeedSchema = new mongoose.Schema({
     type: {type: String, required: true},
     frequency: {type: String, required: false},
-    query: {type: String, required: true}
+    query: {type: String, required: true},
+    token: {type: String, required: false},
 });
 
 var SeeClickFixFeedSchema = new mongoose.Schema({
@@ -334,6 +335,7 @@ UserSchema.statics.createUser = function(data, NewUser, callback) {
 
             NewUser.type = data.type;
             NewUser.label = data.label;
+            NewUser.token = data.token ? data.token : null;
             NewUser.geojsonUrl = data.geojsonUrl;
 
             UserDetailsProvider.getUserDetails(NewUser, function(user){
@@ -348,7 +350,7 @@ UserSchema.statics.createUser = function(data, NewUser, callback) {
 
                 user.save(function (saveErr) {
                     if(saveErr) {
-                        callback('Save error');
+                        callback('Save error' + JSON.stringify(saveErr));
                     }
                     else {
                         callback(undefined, NewUser);

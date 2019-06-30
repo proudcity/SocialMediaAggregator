@@ -24,11 +24,13 @@ exports.extractData = function(userName, agencyName, criteria){
     var $that = this;
 
     criteria.accounts.forEach(function(profile){
+        console.log('agg.profile', criteria);
         Aggregator.runWithWatcher(userName, agencyName, '@' + profile.name, 'instagram', profile.frequency, null, function(){
             logger.log('info', 'Extracting data from Instagram profile %s, user: %s, agency: %s', profile.name, userName, agencyName);
             $that.getLastPostId('@' + profile.name, function(lastPostId){
-                Scraper(profile.name, lastPostId, function(issue, posts) {
-                    // Error
+                Scraper(profile.token, lastPostId, function(issue, posts) {
+
+                  // Error
                     if(issue) {
                         if( _.isObject(issue) ) {
                             logger.log( 
