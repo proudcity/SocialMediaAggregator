@@ -13,13 +13,11 @@ function Scraper(token) {
   this.token = token;
   this.baseUrl = 'https://api.instagram.com/v1/users/self/media/recent/?access_token=' + token;
 }
-// https://api.instagram.com/v1/users/self/media/recent/?access_token=
-//   https://api.instagram.com/v1/users/self/media/recent/?access_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Byb3VkY2l0eS5hdXRoMC5jb20vIiwic3ViIjoiZ29vZ2xlLW9hdXRoMnwxMTExMTQwNzk5ODQzMjgyNjk2MzUiLCJhdWQiOiJPbDNkRFpJMmhleFJMRkdjbEtST0tDUThEekVScWNPWSIsImlhdCI6MTU2MTg4MTEwNywiZXhwIjoxNTYzMDkwNzA3LCJub25jZSI6IlN2aWhzeGkwS0RCZzcybE9ZU2Z6R0syTVg5eTl1TU5IIn0.9TrL7EGSidvR30dEtoQvGlZz6zMXA3c7Gt2ZbQDLFrw
 
 Scraper.prototype.crawl = function(minId, callback) {
   var url  = this.baseUrl;
   if(minId) {
-    url += '?' + qs.stringify({min_id: minId});
+    url += '&' + qs.stringify({min_id: minId});
   }
   logger.log('info', 'Instagram crawler url: %s', url);
   if (this.baseUrl.indexOf('access_token=undefined') !== -1) {

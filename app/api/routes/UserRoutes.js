@@ -41,7 +41,6 @@ router.route('/update')
         var payload = req.body;
         if(_.has(payload, 'name')) {
             var deleteMode = payload.deleteMode ? true : false
-          console.log('payload.agencies', JSON.stringify(payload.agencies));
             User.updateAgencies(payload.name, payload.agencies, function(createError, user) {
                 if(createError) {
                     logger.log( 
